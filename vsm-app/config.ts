@@ -15,9 +15,7 @@ const REDIS_OPTIONS = {
         process.env.REDIS_REJECT_UNAUTHORIZED || 'false'
       ),
     }
-    : undefined
-
-  
+    : undefined,
   password: process.env.REDIS_PASSWORD || '',
 }
 
