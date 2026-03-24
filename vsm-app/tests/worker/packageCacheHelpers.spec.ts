@@ -35,7 +35,7 @@ describe('hashPackageParams', () => {
 
 describe('stripCacheMetadata', () => {
   describe('JSON', () => {
-    it('removes id, identifier, and meta from a cached Bundle', () => {
+    it('removes id, identifier, and meta from a cached Bundle and restores transaction type', () => {
       const cached = JSON.stringify({
         resourceType: 'Bundle',
         id: 'server-assigned-id',
@@ -58,7 +58,7 @@ describe('stripCacheMetadata', () => {
       expect(result).not.toHaveProperty('identifier')
       expect(result).not.toHaveProperty('meta')
       expect(result.resourceType).toBe('Bundle')
-      expect(result.type).toBe('collection')
+      expect(result.type).toBe('transaction')
       expect(result.entry).toHaveLength(1)
       expect(result.entry[0].resource.id).toBe('vs-1')
     })
@@ -80,7 +80,7 @@ describe('stripCacheMetadata', () => {
 
       const result = JSON.parse(stripCacheMetadata(cached, true))
 
-      expect(result.type).toBe('collection')
+      expect(result.type).toBe('transaction')
       expect(result.timestamp).toBe('2026-01-15T00:00:00Z')
       expect(result.total).toBe(42)
       expect(result.entry).toHaveLength(2)
@@ -108,15 +108,16 @@ describe('stripCacheMetadata', () => {
     it('produces output matching original $package structure', () => {
       const original = {
         resourceType: 'Bundle',
-        type: 'collection',
+        type: 'transaction',
         entry: [
           { resource: { resourceType: 'ValueSet', id: 'vs-1', url: 'http://example.com/vs-1' } }
         ]
       }
 
-      // Simulate what storeCachedPackage adds
+      // Simulate what storeCachedPackage adds — type swapped to collection for storage
       const stored = {
         ...original,
+        type: 'collection',
         id: 'server-id',
         identifier: { system: 'http://aphl.org/fhir/vsm/cache/package', value: 'vsp-1|1.0' },
         meta: { tag: [{ system: 'http://aphl.org/fhir/vsm/cache', code: 'package-cache' }] }
@@ -129,7 +130,7 @@ describe('stripCacheMetadata', () => {
   })
 
   describe('XML', () => {
-    it('removes id, identifier, and meta elements', () => {
+    it('removes id, identifier, and meta elements and restores transaction type', () => {
       const cached = [
         '<Bundle xmlns="http://hl7.org/fhir">',
         '<id value="server-assigned-id"/>',
@@ -146,7 +147,7 @@ describe('stripCacheMetadata', () => {
       expect(result).not.toContain('<identifier>')
       expect(result).not.toContain('package-cache')
       expect(result).not.toContain('<meta>')
-      expect(result).toContain('<type value="collection"/>')
+      expect(result).toContain('<type value="transaction"/>')
       expect(result).toContain('<entry>')
       expect(result).toContain('<ValueSet>')
     })
@@ -213,12 +214,12 @@ describe('stripCacheMetadata', () => {
     it('produces output matching original $package structure', () => {
       const original = [
         '<Bundle xmlns="http://hl7.org/fhir">',
-        '<type value="collection"/>',
+        '<type value="transaction"/>',
         '<entry><resource><ValueSet><id value="vs-1"/></ValueSet></resource></entry>',
         '</Bundle>'
       ].join('\n')
 
-      // Simulate what storeCachedPackage injects (after <Bundle ...>)
+      // Simulate what storeCachedPackage injects (after <Bundle ...>) — type swapped to collection for storage
       const stored = [
         '<Bundle xmlns="http://hl7.org/fhir">',
         '<id value="server-id"/>',
