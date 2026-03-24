@@ -6,6 +6,8 @@ hapi_fhir_jpa_server_starter:
 vsm_app:
   app_url: "a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com"
   redis_host_url: "vsm-cache-dev.5hhpo0.ng.0001.use1.cache.amazonaws.com"
+  redis_tls: true
+  redis_tls_reject_unauthorized: true
 keycloak:
   app_url: "a277b15a1bef34b5da8a6af142026e21-1645222855.us-east-1.elb.amazonaws.com"
   db_url: "jdbc:postgresql://sdh-dev-db-01.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsm_keycloak"

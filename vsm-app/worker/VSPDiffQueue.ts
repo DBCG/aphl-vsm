@@ -1,12 +1,12 @@
 import Cache from '@/cache'
-import { DEFAULT_JOB_CONFIG, JOB_EXPIRATION, QUEUE_REDIS_URL } from '@/config'
+import { DEFAULT_JOB_CONFIG, JOB_EXPIRATION, QUEUE_OPTIONS } from '@/config'
 import { JOB_STATUS, JOB_TYPE } from '@/constants'
 import Queue from 'bull'
 import Logger from '@/helpers/server/logger'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 
-const VSPDiffQueue = new Queue('vspDiff', QUEUE_REDIS_URL)
+const VSPDiffQueue = new Queue('vspDiff', QUEUE_OPTIONS)
 
 const originalAdd = VSPDiffQueue.add
 

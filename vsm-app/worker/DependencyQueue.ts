@@ -1,4 +1,4 @@
-import { QUEUE_REDIS_URL, DEFAULT_JOB_CONFIG, JOB_EXPIRATION } from '@/config'
+import { QUEUE_OPTIONS, DEFAULT_JOB_CONFIG, JOB_EXPIRATION } from '@/config'
 import Cache from '@/cache'
 import { JOB_STATUS, JOB_TYPE } from '@/constants'
 import FhirClient from '@/backend/clients/FhirCdrClient'
@@ -6,7 +6,7 @@ import Logger from '@/helpers/server/logger'
 import Queue from 'bull'
 import { ExtendedManifestData } from '@/types/vspTypes'
 
-const DependencyQueue = new Queue('fetchDependencies', QUEUE_REDIS_URL)
+const DependencyQueue = new Queue('fetchDependencies', QUEUE_OPTIONS)
 
 const originalAdd = DependencyQueue.add
 

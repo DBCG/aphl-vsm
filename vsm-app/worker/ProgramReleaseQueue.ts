@@ -1,6 +1,6 @@
 import Queue from 'bull'
 import { Agent, fetch as f } from 'undici'
-import { QUEUE_REDIS_URL } from '@/config'
+import { QUEUE_OPTIONS } from '@/config'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import Cache from '@/cache'
 import { removeDraftFromVersionString } from '@/utils'
@@ -11,7 +11,7 @@ import Logger from '@/helpers/server/logger'
 import { ReleasePayload } from '@/components/modals/ReleaseModal'
 import { JOB_STATUS } from '@/constants'
 
-const ProgramReleaseQueue = new Queue('releaseProgram', QUEUE_REDIS_URL)
+const ProgramReleaseQueue = new Queue('releaseProgram', QUEUE_OPTIONS)
 
 type ProgramReleaseQueueJobData = {
   userId: string
