@@ -77,7 +77,7 @@ describe('JobsService', () => {
       })
 
       const result = await JobsService.getExportJob('job-123')
-      expect(apiFetch).toHaveBeenCalledWith('/api/jobs/job-123')
+      expect(apiFetch).toHaveBeenCalledWith('/api/jobs/job-123/result')
       expect(result.jobId).toBe('job-123')
     })
   })
