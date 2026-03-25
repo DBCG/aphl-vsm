@@ -6,8 +6,8 @@ hapi_fhir_jpa_server_starter:
 vsm_app:
   app_url: "ae378410d0b4c4ee8aef5f79d054044f-252449837.us-east-1.elb.amazonaws.com"
   redis_host_url: "vsm-cache-qa.5hhpo0.ng.0001.use1.cache.amazonaws.com"
-  redis_tls: true
-  redis_tls_reject_unauthorized: true
+  redis_tls: "true"
+  redis_tls_reject_unauthorized: "true"
 keycloak:
   app_url: "aa991ab66ca5841a1a65bc6f37293203-2009854043.us-east-1.elb.amazonaws.com"
   # We will share this keycloak with ersd, no need to deploy here anymore
