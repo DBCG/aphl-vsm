@@ -201,8 +201,17 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     setIsUpdating(false)
   }
 
+  if (isLoading) {
+    return <LoadingIndicator />
+  }
+
   if (selectOptions.length === 0) {
-    return null // Fixes a nextjs hydration error
+    return (
+      <ErrorMessage
+        error="No CodeSystem or ValueSet data available from the terminology server. Please check your VSAC credentials in Settings."
+        severity="warning"
+      />
+    )
   }
 
   const onClickAddHandler = (newVersion: string, system?: string) => {
