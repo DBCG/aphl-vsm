@@ -50,9 +50,9 @@ spec:
         - name: REDIS_HOST
           value: {{ .Values.vsm_app.redis_host_url}}
         - name: REDIS_TLS
-          value: {{ .Values.vsm_app.redis_tls}}
+          value: {{ .Values.vsm_app.redis_tls | quote }}
         - name: REDIS_TLS_REJECT_UNAUTHORIZED
-          value: {{ .Values.vsm_app.redis_tls_reject_unauthorized}}
+          value: {{ .Values.vsm_app.redis_tls_reject_unauthorized | quote }}
         - name: VSAC_USERNAME
           value: apikey
         - name: KEY
