@@ -3,7 +3,9 @@ import Queue from 'bull'
 // DB 2 is used for the worker queue jobs
 // Redis configuration — REDIS_HOST may include port (e.g., "host:6379")
 const [REDIS_HOST, REDIS_PORT] = (process.env.REDIS_HOST || 'localhost').split(':')
-const redisPort = REDIS_PORT || '6379'
+const isTLS = process.env.REDIS_TLS === 'true'
+const defaultPort = isTLS ? '6380' : '6379'
+const redisPort = REDIS_PORT || defaultPort
 const JOB_EXPIRATION = process.env.JOB_EXPIRATION || 86400
 
 const REDIS_OPTIONS = {
