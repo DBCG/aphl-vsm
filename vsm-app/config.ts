@@ -12,7 +12,7 @@ const REDIS_OPTIONS = {
   tls: process.env.REDIS_TLS
       ? {
         rejectUnauthorized: !!JSON.parse(
-            process.env.REDIS_REJECT_UNAUTHORIZED || 'false'
+            process.env.REDIS_TLS_REJECT_UNAUTHORIZED || 'false'
         ),
       }
       : undefined,
