@@ -1,6 +1,6 @@
 import Redis, { RedisOptions } from 'ioredis'
 import Logger from '@/helpers/server/logger'
-import { JOB_EXPIRATION } from '@/config'
+import { JOB_EXPIRATION, CACHE_OPTIONS } from '@/config'
 import { JOB_STATUS } from '@/constants'
 // Parse Redis DB configuration
 const redisDb = 1
@@ -18,12 +18,9 @@ const Cache = (function () {
 
   async function createInstance(): Promise<Redis> {
     const options: RedisOptions = {
-      host: (process.env.REDIS_HOST || 'localhost').split(':')[0],
-      port: parseInt((process.env.REDIS_HOST || '').split(':')[1] || '6379', 10),
+      ...CACHE_OPTIONS,
       lazyConnect: true,
       enableReadyCheck: true,
-      db: redisDb,
-      password: process.env.REDIS_PASSWORD || '',
       showFriendlyErrorStack: true,
       enableAutoPipelining: true,
       maxRetriesPerRequest: 3,

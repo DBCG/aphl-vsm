@@ -12,7 +12,7 @@ import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 import Logger from '@/helpers/server/logger'
 import { isEqualWith, set } from 'lodash'
-import { QUEUE_REDIS_URL } from '@/config'
+import { DEFAULT_JOB_CONFIG, QUEUE_OPTIONS } from '@/config'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 
 type CDRResponseCollection = {
@@ -25,7 +25,8 @@ type CDRResponseCollection = {
 
 const MAX_JOB_SIZE = 20
 
-const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string, userId: string }>('vsUpdate', `${QUEUE_REDIS_URL}`, {
+const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string, userId: string }>('vsUpdate', {
+  ...QUEUE_OPTIONS,
   limiter: {
     max: 1,
     duration: 10000

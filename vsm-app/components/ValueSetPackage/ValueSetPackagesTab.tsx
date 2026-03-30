@@ -11,7 +11,7 @@ import DT from 'react-data-table-component'
 import { fetchWithProgram } from '@/utils'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
-import { allowRelease, allowWithdraw, allowRetire, allowDelete, can, isAdmin, VSMSession } from '@/helpers/rolesHelper'
+import { allowRelease, allowWithdraw, allowRetire, allowDelete, can, isAdmin, VSMSession, isPublisher, isEditor } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
 import { formatDateForTable } from '@/helpers/formatDates'
@@ -768,7 +768,7 @@ const ValueSetPackagesTab: NextPage = () => {
             Expand a row to view VSP Actions
           </div>
         )}
-        {isAdmin(session) && (
+        {(isAdmin(session) || isPublisher(session) || isEditor(session)) && (
           <Button
             variant="contained"
             onClick={() => {
