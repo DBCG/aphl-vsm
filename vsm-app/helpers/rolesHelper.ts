@@ -81,6 +81,13 @@ export const isPublisher = (session: VSMSession) => {
   return getHighestPermissionOfUser(session.user.roles) === 'publisher'
 }
 
+export const isEditor = (session: VSMSession) => {
+  if (!session || session?.user?.roles == null) {
+    return false
+  }
+  return getHighestPermissionOfUser(session.user.roles) === 'editor'
+}
+
 interface AllowToEdit {
   session: VSMSession
   program: fhir4.Library
