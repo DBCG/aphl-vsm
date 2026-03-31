@@ -88,6 +88,8 @@ export function stripCacheMetadata(content: string, isJson: boolean): string {
     delete bundle.id
     delete bundle.identifier
     delete bundle.meta
+    // Restore original Bundle type
+    bundle.type = 'transaction'
     return JSON.stringify(bundle)
   } else {
     // Remove <id .../> element
@@ -96,6 +98,8 @@ export function stripCacheMetadata(content: string, isJson: boolean): string {
     result = result.replace(/<identifier>[\s\S]*?<\/identifier>\s*/m, '')
     // Remove <meta>...</meta> block
     result = result.replace(/<meta>[\s\S]*?<\/meta>\s*/m, '')
+    // Restore original Bundle type
+    result = result.replace(/<type value="collection"\s*\/>/, '<type value="transaction"/>')
     return result
   }
 }
@@ -125,6 +129,8 @@ export async function storeCachedPackage(packageContent: string, resourceId: str
         ...bundle.meta,
         tag: [...(bundle.meta?.tag || []), PACKAGE_CACHE_TAG]
       }
+      // FHIR servers reject storing transaction Bundles as resources — use collection for storage
+      bundle.type = 'collection'
       body = JSON.stringify(bundle)
       contentType = 'application/fhir+json'
     } else {
@@ -137,6 +143,8 @@ export async function storeCachedPackage(packageContent: string, resourceId: str
         /(<Bundle[^>]*>)/,
         `$1${identifierXml}${metaXml}`
       )
+      // FHIR servers reject storing transaction Bundles — swap to collection
+      body = body.replace(/<type value="transaction"\s*\/>/, '<type value="collection"/>')
       contentType = 'application/fhir+xml'
     }
 
