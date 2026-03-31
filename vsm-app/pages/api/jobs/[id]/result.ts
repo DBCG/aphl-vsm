@@ -6,6 +6,8 @@ import PackageQueue from '@/worker/PackageQueue'
 import VSPPackageQueue from '@/worker/VSPPackageQueue'
 import ChangeLogQueue from '@/worker/ChangeLogQueue'
 import DependencyQueue from '@/worker/DependencyQueue'
+import VSPReleaseQueue from '@/worker/VSPReleaseQueue'
+import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
 import Cache from '@/cache'
 import { JOB_TYPE } from '@/constants'
 import { VSMSession } from '@/helpers/rolesHelper'
@@ -60,6 +62,15 @@ const getJobResult = async (req: NextApiRequest, res: NextApiResponse, session: 
         if (!job) {
           Logger.getLogger().info(`Not in VSPPackageQueue, checking PackageQueue`)
           job = await PackageQueue.getJob(jobId)
+        }
+        Logger.getLogger().info(`Job found in queue: ${!!job}`)
+        break
+      case JOB_TYPE.RELEASE:
+        Logger.getLogger().info(`Checking VSPReleaseQueue for job ${jobId}`)
+        job = await VSPReleaseQueue.getJob(jobId)
+        if (!job) {
+          Logger.getLogger().info(`Not in VSPReleaseQueue, checking ProgramReleaseQueue`)
+          job = await ProgramReleaseQueue.getJob(jobId)
         }
         Logger.getLogger().info(`Job found in queue: ${!!job}`)
         break
