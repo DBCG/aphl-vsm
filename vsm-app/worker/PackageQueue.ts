@@ -1,6 +1,6 @@
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 import sanitizeExport from '@/helpers/sanitizeExportHelper'
-import { QUEUE_REDIS_URL } from '@/config'
+import { QUEUE_OPTIONS } from '@/config'
 import Cache from '@/cache'
 import { JOB_STATUS } from '@/constants'
 import { Agent, fetch as f } from 'undici'
@@ -11,7 +11,7 @@ import Queue from 'bull'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 import { convertBundleToCSVHelper } from '@/helpers/convertBundleToCSVHelper'
 
-const PackageQueue = new Queue('exportProgram', QUEUE_REDIS_URL)
+const PackageQueue = new Queue('exportProgram', QUEUE_OPTIONS)
 
 const convertV2toV1 = async (v2: fhir4.Bundle, format: 'json' | 'xml', planDefinition?: fhir4.PlanDefinition, targetVersion?: string) => {
   if (!v2.entry) {

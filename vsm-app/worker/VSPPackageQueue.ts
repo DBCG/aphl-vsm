@@ -1,4 +1,4 @@
-import { QUEUE_REDIS_URL } from '@/config'
+import { QUEUE_OPTIONS } from '@/config'
 import Cache from '@/cache'
 import { JOB_STATUS } from '@/constants'
 import FhirClient from '@/backend/clients/FhirCdrClient'
@@ -7,7 +7,7 @@ import Queue from 'bull'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { hashPackageParams, searchCachedPackage, getCachedPackageContent, stripCacheMetadata, storeCachedPackage } from './packageCacheHelpers'
 
-const VSPPackageQueue = new Queue('vspPackage', QUEUE_REDIS_URL)
+const VSPPackageQueue = new Queue('vspPackage', QUEUE_OPTIONS)
 
 interface VSPPackageJobData {
   vspId: string
