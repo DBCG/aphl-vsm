@@ -332,7 +332,7 @@ const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: Selected
   // Parse CodeSystem versions
   const systemVersions = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
   systemVersions?.forEach((i) => {
-    const paramValue = i.valueString || i.valueUri || ''
+    const paramValue = i.valueCanonical || i.valueString || i.valueUri || ''
     const [system, version = ''] = decodeURI(paramValue).split('|') || []
     if (codeSystems[system]) {
       codeSystems[system].push(version)
@@ -344,7 +344,7 @@ const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: Selected
   // Parse ValueSet versions (NEW for VSPs)
   const valuesetVersions = parameterResource?.parameter?.filter((i) => i.name === 'valueset-version')
   valuesetVersions?.forEach((i) => {
-    const paramValue = i.valueString || i.valueUri || ''
+    const paramValue = i.valueCanonical || i.valueString || i.valueUri || ''
     const [canonical, version = ''] = decodeURI(paramValue).split('|') || []
     if (valueSets[canonical]) {
       valueSets[canonical].push(version)
