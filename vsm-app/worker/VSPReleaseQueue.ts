@@ -1,6 +1,6 @@
 import Queue from 'bull'
 import { Agent, fetch as f } from 'undici'
-import { QUEUE_REDIS_URL } from '@/config'
+import { QUEUE_OPTIONS } from '@/config'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import Cache from '@/cache'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
@@ -8,7 +8,7 @@ import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import Logger from '@/helpers/server/logger'
 import { JOB_STATUS } from '@/constants'
 
-const VSPReleaseQueue = new Queue('releaseVSP', QUEUE_REDIS_URL)
+const VSPReleaseQueue = new Queue('releaseVSP', QUEUE_OPTIONS)
 
 type VSPReleaseQueueJobData = {
   vspId: string
