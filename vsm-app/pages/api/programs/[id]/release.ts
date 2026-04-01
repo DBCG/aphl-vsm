@@ -81,6 +81,9 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
   }
 
   try {
+    Logger.getLogger().info('Release Job Config:')
+    Logger.getLogger().info(DEFAULT_JOB_CONFIG)
+
     const job = await ProgramReleaseQueue.add(
         {
           releaseAsVersion,
