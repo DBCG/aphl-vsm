@@ -16,6 +16,7 @@ import {
 } from '@/helpers/libraryHelpers'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { cache } from 'react'
+import Logger from "@/helpers/server/logger";
 
 export interface ReleaseRequest extends NextApiRequest {
   body: ReleasePayload
@@ -79,31 +80,36 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
     program.version = releaseAsVersion
   }
 
-  const job = await ProgramReleaseQueue.add(
-    {
-      releaseAsVersion,
-      programId,
-      releaseDescription,
-      releaseLabel,
-      effectiveStartDate,
-      latestFromTxServer,
-      userId
-    },
-    DEFAULT_JOB_CONFIG
-  )
+  try {
+    const job = await ProgramReleaseQueue.add(
+        {
+          releaseAsVersion,
+          programId,
+          releaseDescription,
+          releaseLabel,
+          effectiveStartDate,
+          latestFromTxServer,
+          userId
+        },
+        DEFAULT_JOB_CONFIG
+    )
 
-  await Cache.setNewJob({
-    userId,
-    jobId: job.id.toString(),
-    type: JOB_TYPE.RELEASE,
-    metadata: JSON.stringify({
-      programId,
-      programTitle,
-      latestFromTxServer
+    await Cache.setNewJob({
+      userId,
+      jobId: job.id.toString(),
+      type: JOB_TYPE.RELEASE,
+      metadata: JSON.stringify({
+        programId,
+        programTitle,
+        latestFromTxServer
+      })
     })
-  })
 
-  return res.status(200).send(job)
+    return res.status(200).send(job)
+  } catch (e) {
+    Logger.getLogger().error(`Error encountered starting release job: ${e}`)
+  }
+  return res.status(500).send({ error: 'Error encountered starting release job' })
 }
 
 export default handler({
