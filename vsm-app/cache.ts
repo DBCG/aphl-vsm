@@ -32,6 +32,9 @@ const Cache = (function () {
       }
     }
 
+    Logger.getLogger().info("Redis Options:")
+    Logger.getLogger().info(JSON.stringify(options, null, 2))
+
     const redisInstance = new Redis(options)
 
     return new Promise((resolve, reject) => {

@@ -5,15 +5,15 @@ import Queue from 'bull'
 const [REDIS_HOST, REDIS_PORT] = (process.env.REDIS_HOST || 'localhost').split(':')
 const redisPort = REDIS_PORT || '6379'
 const JOB_EXPIRATION = process.env.JOB_EXPIRATION || 86400
+const REDIS_TLS = process.env.REDIS_TLS === 'true'
+const REDIS_TLS_REJECT_UNAUTHORIZED = process.env.REDIS_TLS_REJECT_UNAUTHORIZED === 'true'
 
 const REDIS_OPTIONS = {
   host: REDIS_HOST || 'localhost',
   port: parseInt(redisPort, 10),
-  tls: process.env.REDIS_TLS
+  tls: REDIS_TLS
       ? {
-        rejectUnauthorized: !!JSON.parse(
-            process.env.REDIS_TLS_REJECT_UNAUTHORIZED || 'false'
-        ),
+        rejectUnauthorized: REDIS_TLS_REJECT_UNAUTHORIZED || false,
       }
       : undefined,
   password: process.env.REDIS_PASSWORD || '',
