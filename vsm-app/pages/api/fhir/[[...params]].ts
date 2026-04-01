@@ -301,7 +301,7 @@ const deletePassthroughRequest = async (req: NextApiRequest, res: NextApiRespons
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '50mb',
+      sizeLimit: '75mb',
     },
     responseLimit: false,
   },
