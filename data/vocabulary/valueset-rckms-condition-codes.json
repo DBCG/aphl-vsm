@@ -2,16 +2,16 @@
   "resourceType": "ValueSet",
   "id": "rckms-condition-codes",
   "url": "http://ersd.aimsplatform.org/fhir/ValueSet/rckms-condition-codes",
-  "version": "20250703",
-  "name": "RCKMSContentCodes",
-  "title": "RCKMS Content Codes",
+  "version": "20260227",
+  "name": "RCKMSConditionCodes",
+  "title": "RCKMS Condition Codes",
   "status": "active",
   "publisher": "RCKMS",
   "description": "The Reportable Condition Knowledge Management System (RCKMS) associates a standardized code with each condition available for authoring. This workbook contains condition codes included in the June 2023 content release. Please note that while there may be overlap with concepts referenced in RCKMS reporting logic, this value set is not intended to serve as a 'trigger' for case reporting.  When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
   "compose": {
     "include": [ {
       "system": "http://snomed.info/sct",
-      "version": "2025-03",
+      "version": "2025-09",
       "concept": [ {
         "code": "49649001",
         "display": "Infection caused by Acanthamoeba (disorder)",
@@ -398,7 +398,7 @@
           "value": "Carbapenem-resistant Acinetobacter baumannii (CRAB)"
         } ]
       }, {
-        "code": "4.4591E+13",
+        "code": "44591000087104",
         "display": "Carbapenem resistant Enterobacterales (organism)",
         "designation": [ {
           "use": {
@@ -1080,7 +1080,7 @@
           "value": "Hepatitis C Virus Infection"
         } ]
       }, {
-        "code": "5.51611E+14",
+        "code": "551611000124101",
         "display": "Perinatal hepatitis caused by Hepatitis C virus (disorder)",
         "designation": [ {
           "use": {
@@ -1102,7 +1102,7 @@
           "value": "Hepatitis D Virus Infection"
         } ]
       }, {
-        "code": "7.111E+12",
+        "code": "7111000119109",
         "display": "Viral hepatitis type E (disorder)",
         "designation": [ {
           "use": {
@@ -1564,7 +1564,7 @@
           "value": "Microtia"
         } ]
       }, {
-        "code": "6.51E+11",
+        "code": "651000146102",
         "display": "Middle East respiratory syndrome (disorder)",
         "designation": [ {
           "use": {
@@ -1718,7 +1718,7 @@
           "value": "Nontuberculous Mycobacteria Infection, Extrapulmonary"
         } ]
       }, {
-        "code": "1.731E+12",
+        "code": "1731000119106",
         "display": "Atypical mycobacterial infection of lung (disorder)",
         "designation": [ {
           "use": {
@@ -1740,7 +1740,7 @@
           "value": "Norovirus Infections"
         } ]
       }, {
-        "code": "5.41131E+14",
+        "code": "541131000124102",
         "display": "Infection caused by novel Influenza A virus variant (disorder)",
         "designation": [ {
           "use": {
@@ -2092,7 +2092,7 @@
           "value": "Severe Acute Respiratory Syndrome (SARS)"
         } ]
       }, {
-        "code": "3.28291E+14",
+        "code": "328291000119103",
         "display": "Infection caused by Shiga toxin producing Escherichia coli (disorder)",
         "designation": [ {
           "use": {
@@ -2871,6 +2871,28 @@
             "display": "Synonym"
           },
           "value": "X-linked Adrenoleukodystrophy"
+        } ]
+      }, {
+        "code": "1001411000124108",
+        "display": "Death associated with disease caused by severe acute respiratory syndrome coronavirus 2 (event)",
+        "designation": [ {
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "synonym",
+            "display": "Synonym"
+          },
+          "value": "COVID-19-Associated Pediatric Mortality"
+        } ]
+      }, {
+        "code": "1382227005",
+        "display": "Infection caused by soil transmitted helminth (disorder)",
+        "designation": [ {
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "synonym",
+            "display": "Synonym"
+          },
+          "value": "Soil-Transmitted Helminth Infections"
         } ]
       } ]
     } ]
