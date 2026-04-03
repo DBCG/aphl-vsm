@@ -330,9 +330,11 @@ const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: Selected
   ) as fhir4.Parameters
 
   // Parse CodeSystem versions
+  // Note: $release-manifest returns valueCanonical (e.g. "http://loinc.org|2.81"),
+  // while manual edits and $infer-manifest-parameters may use valueString or valueUri.
   const systemVersions = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
   systemVersions?.forEach((i) => {
-    const paramValue = i.valueString || i.valueUri || ''
+    const paramValue = i.valueCanonical || i.valueString || i.valueUri || ''
     const [system, version = ''] = decodeURI(paramValue).split('|') || []
     if (codeSystems[system]) {
       codeSystems[system].push(version)
@@ -344,7 +346,7 @@ const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: Selected
   // Parse ValueSet versions (NEW for VSPs)
   const valuesetVersions = parameterResource?.parameter?.filter((i) => i.name === 'valueset-version')
   valuesetVersions?.forEach((i) => {
-    const paramValue = i.valueString || i.valueUri || ''
+    const paramValue = i.valueCanonical || i.valueString || i.valueUri || ''
     const [canonical, version = ''] = decodeURI(paramValue).split('|') || []
     if (valueSets[canonical]) {
       valueSets[canonical].push(version)
