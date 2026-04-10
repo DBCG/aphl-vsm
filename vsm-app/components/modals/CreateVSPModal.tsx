@@ -430,11 +430,22 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
               const value = e.target.value
               setIgCanonical(value)
 
+              // Clear version error as user edits the field
+              if (errors.igCanonical) {
+                setErrors({ ...errors, igCanonical: '' })
+              }
+
               // Try to infer Package ID from the canonical URL
               // Pattern: .../ImplementationGuide/{packageId}|{version}
               const igMatch = value.match(/\/ImplementationGuide\/([^|]+?)(?:\|.*)?$/)
               if (igMatch?.[1]) {
                 setIgPackageId(igMatch[1])
+              }
+            }}
+            onBlur={(e) => {
+              const value = e.target.value.trim()
+              if (value && !value.includes('|')) {
+                setErrors({ ...errors, igCanonical: 'IG Canonical must include version (e.g., http://...|6.1.0)' })
               }
             }}
             error={Boolean(errors.igCanonical)}
