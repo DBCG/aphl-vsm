@@ -32,6 +32,10 @@ jest.mock('../../../../worker/ProgramReleaseQueue', () => ({
   __esModule: true,
   default: { getJob: jest.fn() }
 }))
+jest.mock('../../../../worker/VSPReleaseQueue', () => ({
+  __esModule: true,
+  default: { getJob: jest.fn() }
+}))
 jest.mock('../../../../worker/ChangeLogQueue', () => ({
   __esModule: true,
   default: { getJob: jest.fn() }

@@ -8,10 +8,25 @@ import deleteHandler from '@/pages/api/value-set-packages/[id]/delete'
 jest.mock('next-auth', () => jest.fn())
 jest.mock('next-auth/next', () => ({
   getServerSession: jest.fn().mockImplementation(() => ({
-    user: { roles: ['admin'], email: 'superman@gotham.com' }
+    user: { id: 'user-123', roles: ['admin'], email: 'superman@gotham.com' }
   }))
 }))
 jest.mock('fhir-kit-client')
+
+jest.mock('../../../../worker/VSPReleaseQueue', () => ({
+  __esModule: true,
+  default: {
+    add: jest.fn().mockResolvedValue({ id: 'job-123' })
+  }
+}))
+
+jest.mock('../../../../cache', () => ({
+  __esModule: true,
+  default: {
+    getInstance: jest.fn(),
+    setNewJob: jest.fn().mockResolvedValue(undefined)
+  }
+}))
 
 const makeVSPResource = (overrides: any = {}): fhir4.Library => ({
   resourceType: 'Library',
@@ -31,10 +46,9 @@ const makeVSPResource = (overrides: any = {}): fhir4.Library => ({
 
 describe('VSP Lifecycle Operations', () => {
   describe('POST /api/value-set-packages/[id]/release', () => {
-    test('releases a draft VSP (draft → active)', async () => {
+    test('queues an async release job for a draft VSP', async () => {
       const vsp = makeVSPResource({ status: 'draft' })
       FhirClient.getInstance().read = jest.fn().mockResolvedValue(vsp)
-      FhirClient.getInstance().update = jest.fn().mockResolvedValue({ ...vsp, status: 'active' })
 
       const { req, res } = createMocks({
         method: 'POST',
@@ -44,15 +58,9 @@ describe('VSP Lifecycle Operations', () => {
       await releaseHandler(req, res)
       expect(res._getStatusCode()).toBe(200)
 
-      const data = res._getData()
-      expect(data.message).toContain('released')
-
-      // Verify status was set to active
-      expect(FhirClient.getInstance().update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({ status: 'active' })
-        })
-      )
+      const data = JSON.parse(res._getData())
+      // Returns a job object, not a sync message
+      expect(data).toHaveProperty('id', 'job-123')
     })
 
     test('returns 400 when trying to release an active VSP', async () => {
@@ -101,27 +109,6 @@ describe('VSP Lifecycle Operations', () => {
 
       await releaseHandler(req, res)
       expect(res._getStatusCode()).toBe(400)
-    })
-
-    test('sets release date on the VSP', async () => {
-      const vsp = makeVSPResource({ status: 'draft' })
-      FhirClient.getInstance().read = jest.fn().mockResolvedValue(vsp)
-      FhirClient.getInstance().update = jest.fn().mockResolvedValue({ ...vsp, status: 'active' })
-
-      const { req, res } = createMocks({
-        method: 'POST',
-        query: { id: 'test-vsp-2026-01' }
-      })
-
-      await releaseHandler(req, res)
-
-      expect(FhirClient.getInstance().update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({
-            date: expect.any(String)
-          })
-        })
-      )
     })
 
     test('returns 500 on FHIR error', async () => {
