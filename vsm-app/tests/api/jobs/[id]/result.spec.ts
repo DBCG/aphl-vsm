@@ -36,6 +36,14 @@ jest.mock('../../../../worker/VSPDiffQueue', () => ({
   __esModule: true,
   default: { getJob: jest.fn() }
 }))
+jest.mock('../../../../worker/ProgramReleaseQueue', () => ({
+  __esModule: true,
+  default: { getJob: jest.fn() }
+}))
+jest.mock('../../../../worker/VSPReleaseQueue', () => ({
+  __esModule: true,
+  default: { getJob: jest.fn() }
+}))
 
 import Cache from '@/cache'
 import DependencyQueue from '@/worker/DependencyQueue'

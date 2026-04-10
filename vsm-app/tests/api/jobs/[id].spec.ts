@@ -30,7 +30,16 @@ jest.mock('../../../worker/DependencyQueue', () => ({
 jest.mock('../../../worker/VSPPackageQueue', () => ({
   __esModule: true,
   default: {
-    process: jest.fn()
+    process: jest.fn(),
+    getJob: jest.fn()
+  }
+}))
+
+jest.mock('../../../worker/VSPReleaseQueue', () => ({
+  __esModule: true,
+  default: {
+    process: jest.fn(),
+    getJob: jest.fn()
   }
 }))
 

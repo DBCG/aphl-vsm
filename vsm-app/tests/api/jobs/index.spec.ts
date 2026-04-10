@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import PackageQueue from '@/worker/PackageQueue'
 import ChangeLogQueue from '@/worker/ChangeLogQueue'
 import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
+import VSPReleaseQueue from '@/worker/VSPReleaseQueue'
 import VSPDiffQueue from '@/worker/VSPDiffQueue'
 import VSPPackageQueue from '@/worker/VSPPackageQueue'
 
@@ -62,6 +63,14 @@ jest.mock('../../../worker/VSPPackageQueue', () => ({
   }
 }))
 
+jest.mock('../../../worker/VSPReleaseQueue', () => ({
+  __esModule: true,
+  default: {
+    process: jest.fn(),
+    getJob: jest.fn()
+  }
+}))
+
 import Cache from '@/cache'
 
 
@@ -107,7 +116,8 @@ describe('/api/jobs', () => {
     ProgramReleaseQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
     VSPDiffQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
     VSPPackageQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
-  
+    VSPReleaseQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
+
     await handler(req, res)
 
     expect(res._getStatusCode()).toBe(200)
