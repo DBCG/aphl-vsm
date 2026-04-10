@@ -90,7 +90,7 @@ const formatBody = ({ isJson, isV2, targetVersion, fileUploadContent }: BodyForm
 }
 
 const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError, resourceType = 'program' }: ModalInfo) => {
-  const [fileType, setFileType] = useState<'json' | 'xml'>('json')
+  const [fileType, setFileType] = useState<'json' | 'xml' | 'csv'>('json')
   const [downloadLoading, setDownloadLoading] = useState(false)
   const [versionRadioValue, setVersionRadioValue] = useState('v2')
   const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: fhir4.PlanDefinition }>(undefined)
@@ -169,7 +169,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       const specialCharRx = /[^a-zA-Z\d\s:\-_]/gi
       const spaceAndUnderscoreRx = /[\s_]/gi
       const fileTitle = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
-      const fileExtension = fileType === 'json' ? 'json' : 'xml'
+      const fileExtension = fileType === 'csv' ? 'csv' : fileType === 'json' ? 'json' : 'xml'
       const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
       const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
 
@@ -184,7 +184,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       toast.info('Exporting package. You will be notified when it is ready for download.')
 
       const jobResponse = await packageProgram({
-        isJson: fileType === 'json',
+        isJson: fileType === 'json' || fileType === 'csv',
         isV2: versionRadioValue === 'v2',
         targetVersion,
         fileUploadContent,
@@ -233,9 +233,18 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
         <DialogTitle sx={{ textAlign: 'left' }}>Export Options</DialogTitle>
         <DialogContent>
           <FormGroup>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography>XML</Typography>
-              {
+            {resourceType === 'vsp' ? (
+              <RadioGroup
+                value={fileType}
+                onChange={(e) => setFileType(e.target.value as 'json' | 'xml' | 'csv')}
+              >
+                <FormControlLabel value="json" control={<Radio />} label="JSON" />
+                <FormControlLabel value="xml" control={<Radio />} label="XML" />
+                <FormControlLabel value="csv" control={<Radio />} label="CSV" />
+              </RadioGroup>
+            ) : (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography>XML</Typography>
                 <Switch
                   defaultChecked={true}
                   data-switch={'file-type'}
@@ -244,9 +253,9 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
                     '& .MuiSwitch-thumb, & .MuiSwitch-track': { backgroundColor: 'var(--theme-300)' }
                   }}
                 />
-              }
-              <Typography>JSON</Typography>
-            </Stack>
+                <Typography>JSON</Typography>
+              </Stack>
+            )}
           </FormGroup>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'flex-end' }}>
