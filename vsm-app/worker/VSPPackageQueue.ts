@@ -5,6 +5,7 @@ import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
 import Queue from 'bull'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { hashPackageParams, searchCachedPackage, getCachedPackageContent, stripCacheMetadata, storeCachedPackage } from './packageCacheHelpers'
 
 const VSPPackageQueue = new Queue('vspPackage', QUEUE_OPTIONS)
 
@@ -41,21 +42,60 @@ VSPPackageQueue.process(async function (job: any, done) {
   }
 
   try {
-    // Update progress
-    job.progress({ step: 'Reading VSP Library', current: 1, total: 4 })
+    // Determine total steps based on whether caching is applicable
+    // Active VSPs are immutable and can use caching (5 steps); others skip cache (4 steps)
 
-    // Read the VSP Library
+    // Step 1: Read VSP Library
+    job.progress({ step: 'Reading VSP Library', current: 1, total: 5 })
+
     const vsp = await FhirClient.getInstance().read({
       resourceType: 'Library',
       id: vspId
     }) as fhir4.Library
 
-    Logger.getLogger().info(`VSP Library read: ${vsp.id}`)
+    Logger.getLogger().info(`VSP Library read: ${vsp.id} (status: ${vsp.status})`)
 
-    // Update progress
-    job.progress({ step: 'Retrieving VSAC credentials', current: 2, total: 4 })
+    const isActive = vsp.status === 'active'
+    const vspVersion = vsp.version || ''
+    const totalSteps = isActive ? 5 : 4
 
-    // Get VSAC credentials for the user
+    // Terminology routes/endpoints that affect $package output
+    const artifactRoute = 'http://cts.nlm.nih.gov/fhir'
+    const artifactEndpointAddress = 'https://cts.nlm.nih.gov/fhir'
+    const terminologyEndpointAddress = 'http://tx.fhir.org/r4'
+    const paramsHash = hashPackageParams(artifactRoute, artifactEndpointAddress, terminologyEndpointAddress)
+
+    // Step 2 (active only): Check CDR cache
+    if (isActive) {
+      job.progress({ step: 'Checking cache', current: 2, total: totalSteps })
+
+      const cachedBundleId = await searchCachedPackage(vspId, vspVersion, paramsHash)
+      if (cachedBundleId) {
+        Logger.getLogger().info(`Cache HIT for VSP ${vspId}|${vspVersion} (Bundle/${cachedBundleId})`)
+
+        const cachedContent = await getCachedPackageContent(cachedBundleId, isJson)
+        if (cachedContent) {
+          const cleanedContent = stripCacheMetadata(cachedContent, isJson)
+
+          await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
+          Logger.getLogger().info(`Returning cached package (${cleanedContent.length} bytes)`)
+          Logger.getLogger().info('='.repeat(80))
+
+          return done(null, {
+            response: cleanedContent,
+            bundleSize: cleanedContent.length
+          })
+        }
+        Logger.getLogger().warn(`Cache HIT but failed to read content — falling back to $package`)
+      } else {
+        Logger.getLogger().info(`Cache MISS for VSP ${vspId}|${vspVersion}`)
+      }
+    }
+
+    // Step 3 (or 2 for non-active): Retrieve VSAC credentials
+    const credStep = isActive ? 3 : 2
+    job.progress({ step: 'Retrieving VSAC credentials', current: credStep, total: totalSteps })
+
     const vsCreds = await tsCredentialService.getVsacCredentials(userId)
 
     if (!vsCreds || !vsCreds.username || !vsCreds.password) {
@@ -67,18 +107,17 @@ VSPPackageQueue.process(async function (job: any, done) {
 
     Logger.getLogger().info(`Retrieved VSAC credentials for user: ${userId}`)
 
-    // Update progress
-    job.progress({ step: 'Calling $package operation (may take several minutes)', current: 3, total: 4 })
+    // Step 4 (or 3 for non-active): Call $package
+    const packageStep = isActive ? 4 : 3
+    job.progress({ step: 'Calling $package operation (may take several minutes)', current: packageStep, total: totalSteps })
 
     // Construct Basic Auth header for VSAC
-    // Format: "Authorization: Basic <base64(apikey:api-key-value)>"
     const vsacAuth = Buffer.from(`apikey:${vsCreds.password}`).toString('base64')
     const vsacAuthHeader = `Authorization: Basic ${vsacAuth}`
 
     Logger.getLogger().info(`VSAC endpoint configured with Basic Auth`)
 
     // Create Parameters resource following CRMI specification
-    // See: https://build.fhir.org/ig/HL7/crmi-ig/OperationDefinition-crmi-package.html
     const parametersInput: fhir4.Parameters = {
       resourceType: 'Parameters',
       parameter: [
@@ -91,7 +130,7 @@ VSPPackageQueue.process(async function (job: any, done) {
           part: [
             {
               name: 'artifactRoute',
-              valueUri: 'http://cts.nlm.nih.gov/fhir'
+              valueUri: artifactRoute
             },
             {
               name: 'endpoint',
@@ -103,7 +142,7 @@ VSPPackageQueue.process(async function (job: any, done) {
                   code: 'hl7-fhir-rest'
                 },
                 name: 'VSAC FHIR Terminology Server',
-                address: 'https://cts.nlm.nih.gov/fhir',
+                address: artifactEndpointAddress,
                 header: [vsacAuthHeader],
                 payloadType: [{ coding: [{ code: 'none' }] }]
               }
@@ -129,22 +168,20 @@ VSPPackageQueue.process(async function (job: any, done) {
                 ]
               }
             ],
-            address: 'http://tx.fhir.org/r4'
+            address: terminologyEndpointAddress
           }
         }
       ]
     }
 
-    // Call $package operation on the specific VSP instance
     const { fetch: f, Agent } = require('undici')
     const baseUrl = FhirClient.getInstance().baseUrl
     const url = `${baseUrl}/Library/${vspId}/$package`
 
-    // Use the appropriate Accept header based on desired format
     const acceptHeader = isJson ? 'application/fhir+json' : 'application/fhir+xml'
     Logger.getLogger().info(`Calling $package at: ${url} (format: ${isJson ? 'JSON' : 'XML'})`)
     Logger.getLogger().info(`VSP ID: ${vspId}`)
-    Logger.getLogger().info(`VSAC Endpoint: https://cts.nlm.nih.gov/fhir`)
+    Logger.getLogger().info(`VSAC Endpoint: ${artifactEndpointAddress}`)
 
     const response = await f(url, {
       method: 'POST',
@@ -157,7 +194,7 @@ VSPPackageQueue.process(async function (job: any, done) {
       }),
       headers: {
         'Content-Type': 'application/fhir+json',
-        'Accept': acceptHeader,  // Request the format we want directly from FHIR server
+        'Accept': acceptHeader,
         ...FhirClient.getInstance().customHeaders
       }
     })
@@ -176,13 +213,12 @@ VSPPackageQueue.process(async function (job: any, done) {
       return done(null, { error: errorText })
     }
 
-    // Update progress
-    job.progress({ step: 'Processing response', current: 4, total: 4 })
+    // Step 5 (or 4 for non-active): Process response
+    const processStep = isActive ? 5 : 4
+    job.progress({ step: 'Processing response', current: processStep, total: totalSteps })
 
-    // Get the response as text (works for both JSON and XML)
     const packageContent = await response.text()
 
-    // Validate the response contains a Bundle (basic check)
     if (!packageContent.includes('Bundle')) {
       const error = '$package did not return a Bundle'
       Logger.getLogger().error(error)
@@ -192,14 +228,16 @@ VSPPackageQueue.process(async function (job: any, done) {
 
     Logger.getLogger().info(`Package response received (${packageContent.length} bytes)`)
 
-    // Store job as completed
+    // Cache the result for active VSPs (non-fatal)
+    if (isActive) {
+      await storeCachedPackage(packageContent, vspId, vspVersion, paramsHash, isJson)
+    }
+
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
 
     Logger.getLogger().info('VSP Package job completed successfully')
     Logger.getLogger().info('='.repeat(80))
 
-    // Return in the same structure as Programs for compatibility with ExportNotification
-    // ExportNotification expects job.returnvalue.response to contain the package content
     return done(null, {
       response: packageContent,
       bundleSize: packageContent.length
