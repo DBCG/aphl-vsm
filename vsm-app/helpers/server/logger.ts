@@ -24,6 +24,9 @@ class Logger {
   }
 
   static getLogger() {
+    if (!Logger.instance) {
+      Logger.initLogger()
+    }
     return Logger.instance
   }
 
