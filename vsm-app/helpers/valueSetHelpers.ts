@@ -358,6 +358,36 @@ const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: Selected
   return { codeSystems, valueSets }
 }
 
+/**
+ * Returns the canonical URLs in a VSP Library's contained `expansion-parameters-vsp`
+ * (or `expansion-parameters-ecr`) Parameters whose version pin is missing or empty.
+ * An entry is considered unversioned when the value (`valueCanonical`/`valueString`/
+ * `valueUri`) has no `|version` suffix or its version segment is whitespace-only.
+ */
+const findUnversionedManifestRefs = (library: fhir4.Library): { codeSystems: string[]; valueSets: string[] } => {
+  const codeSystems: string[] = []
+  const valueSets: string[] = []
+
+  const parameterResource = library?.contained?.find((r) =>
+    r.id === 'expansion-parameters-vsp' || r.id === 'expansion-parameters-ecr'
+  ) as fhir4.Parameters | undefined
+
+  parameterResource?.parameter?.forEach((p) => {
+    if (p.name !== 'system-version' && p.name !== 'valueset-version') return
+    const raw = p.valueCanonical || p.valueString || p.valueUri || ''
+    const [canonical, version = ''] = decodeURI(raw).split('|')
+    if (!canonical) return
+    if (version.trim() !== '') return
+    if (p.name === 'system-version') {
+      if (!codeSystems.includes(canonical)) codeSystems.push(canonical)
+    } else {
+      if (!valueSets.includes(canonical)) valueSets.push(canonical)
+    }
+  })
+
+  return { codeSystems, valueSets }
+}
+
 // update grouper valueset with proper version
 const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, version: string): fhir4.ValueSet => {
   const vsCopy = cloneDeep(vs)
@@ -739,5 +769,6 @@ export {
   urlWithoutPinnedVersion,
   // VSP-specific manifest functions
   setExpansionParametersForVSP,
-  getVSPManifestVersions
+  getVSPManifestVersions,
+  findUnversionedManifestRefs
 }

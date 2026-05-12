@@ -29,6 +29,8 @@ import { JOB_TYPE } from '@/constants'
 import dayjs from 'dayjs';
 import { ExportJobMetadata } from '@/types/jobTypes'
 import { apiFetch } from '@/utils'
+import { findUnversionedManifestRefs } from '@/helpers/valueSetHelpers'
+import ConfirmUnversionedRefsModal from '@/components/modals/ConfirmUnversionedRefsModal'
 
 interface ModalInfo {
   isOpen: boolean
@@ -96,6 +98,12 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: fhir4.PlanDefinition }>(undefined)
   const [targetVersion, setTargetVersion] = useState<string>('')
   const [inputError, setInputError] = useState<boolean>(false)
+  const [unversionedConfirmOpen, setUnversionedConfirmOpen] = useState(false)
+
+  const unversionedRefs = resourceType === 'vsp'
+    ? findUnversionedManifestRefs(program)
+    : { codeSystems: [], valueSets: [] }
+  const hasUnversionedRefs = unversionedRefs.codeSystems.length + unversionedRefs.valueSets.length > 0
 
   const handleResetState = () => {
     setFileType('json')
@@ -161,6 +169,14 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   }
 
   const handleClickExport = async () => {
+    if (hasUnversionedRefs) {
+      setUnversionedConfirmOpen(true)
+      return
+    }
+    await runExport()
+  }
+
+  const runExport = async () => {
     setDownloadLoading(true)
 
     try {
@@ -228,6 +244,19 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   }
 
   return (
+    <>
+    <ConfirmUnversionedRefsModal
+      isOpen={unversionedConfirmOpen}
+      action="export"
+      codeSystems={unversionedRefs.codeSystems}
+      valueSets={unversionedRefs.valueSets}
+      confirmLoading={downloadLoading}
+      onCancel={() => setUnversionedConfirmOpen(false)}
+      onConfirm={async () => {
+        setUnversionedConfirmOpen(false)
+        await runExport()
+      }}
+    />
     <Dialog open={isOpen} onClose={handleResetState}>
       <ModalContent style={{ minWidth: '300px' }}>
         <DialogTitle sx={{ textAlign: 'left' }}>Export Options</DialogTitle>
@@ -268,6 +297,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
         </DialogActions>
       </ModalContent>
     </Dialog>
+    </>
   )
 }
 
