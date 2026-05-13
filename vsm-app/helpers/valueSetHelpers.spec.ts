@@ -12,7 +12,10 @@ import {
   organizeValueSetDefinitionData,
   setExpansionParametersForVSP,
   getVSPManifestVersions,
-  getProgramManifestVersions
+  getProgramManifestVersions,
+  filterToUnversioned,
+  applyVersionUpdate,
+  applyAddManifestEntry
 } from './valueSetHelpers'
 import { uniq } from 'lodash'
 import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional';
@@ -1119,6 +1122,145 @@ describe('VSP Manifest Functions', () => {
       const result = getProgramManifestVersions(library)
       expect(result['http://loinc.org']).toEqual(['2.74'])
       expect(result['http://snomed.info/sct']).toEqual([''])
+    })
+  })
+
+  describe('filterToUnversioned', () => {
+    it('returns empty object when input is empty', () => {
+      expect(filterToUnversioned({})).toEqual({})
+    })
+
+    it('returns empty object when input is null or undefined', () => {
+      expect(filterToUnversioned(undefined as any)).toEqual({})
+      expect(filterToUnversioned(null as any)).toEqual({})
+    })
+
+    it('returns empty object when every entry has a pinned version', () => {
+      const input = {
+        'http://loinc.org': ['2.74'],
+        'http://snomed.info/sct': ['20240301']
+      }
+      expect(filterToUnversioned(input)).toEqual({})
+    })
+
+    it('retains entries with empty-string versions', () => {
+      const input = {
+        'http://loinc.org': [''],
+        'http://snomed.info/sct': ['20240301']
+      }
+      expect(filterToUnversioned(input)).toEqual({ 'http://loinc.org': [''] })
+    })
+
+    it('treats whitespace-only versions as unversioned', () => {
+      const input = {
+        'http://loinc.org': ['   '],
+        'http://snomed.info/sct': ['\t']
+      }
+      expect(filterToUnversioned(input)).toEqual({
+        'http://loinc.org': ['   '],
+        'http://snomed.info/sct': ['\t']
+      })
+    })
+
+    it('keeps only the unversioned entries when a system has a mix', () => {
+      const input = {
+        'http://loinc.org': ['2.74', '', '2.75']
+      }
+      expect(filterToUnversioned(input)).toEqual({ 'http://loinc.org': [''] })
+    })
+
+    it('does not mutate the input', () => {
+      const input = {
+        'http://loinc.org': ['', '2.74']
+      }
+      const snapshot = JSON.parse(JSON.stringify(input))
+      filterToUnversioned(input)
+      expect(input).toEqual(snapshot)
+    })
+  })
+
+  describe('applyVersionUpdate', () => {
+    it('replaces an existing version in place (order preserved)', () => {
+      const input = {
+        'http://loinc.org': ['2.73', '2.74', '2.75']
+      }
+      const result = applyVersionUpdate(input, 'http://loinc.org', '2.74', '2.74a')
+      expect(result['http://loinc.org']).toEqual(['2.73', '2.74a', '2.75'])
+    })
+
+    it('appends newVersion when oldVersion is not found', () => {
+      const input = {
+        'http://loinc.org': ['2.73']
+      }
+      const result = applyVersionUpdate(input, 'http://loinc.org', '2.99', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.73', '2.74'])
+    })
+
+    it('does not append when newVersion already exists and oldVersion is not found', () => {
+      const input = {
+        'http://loinc.org': ['2.73']
+      }
+      const result = applyVersionUpdate(input, 'http://loinc.org', '2.99', '2.73')
+      expect(result['http://loinc.org']).toEqual(['2.73'])
+    })
+
+    it('creates the system entry if missing', () => {
+      const result = applyVersionUpdate({}, 'http://loinc.org', '', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.74'])
+    })
+
+    it('can replace a versioned entry with an empty-string version (unpin)', () => {
+      const input = {
+        'http://loinc.org': ['2.74']
+      }
+      const result = applyVersionUpdate(input, 'http://loinc.org', '2.74', '')
+      expect(result['http://loinc.org']).toEqual([''])
+    })
+
+    it('does not mutate the input', () => {
+      const input = {
+        'http://loinc.org': ['2.73', '2.74']
+      }
+      const snapshot = JSON.parse(JSON.stringify(input))
+      applyVersionUpdate(input, 'http://loinc.org', '2.74', '2.75')
+      expect(input).toEqual(snapshot)
+    })
+  })
+
+  describe('applyAddManifestEntry', () => {
+    it('adds a new canonical with the given version', () => {
+      const result = applyAddManifestEntry({}, 'http://loinc.org', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.74'])
+    })
+
+    it('appends a version to an existing canonical', () => {
+      const input = {
+        'http://loinc.org': ['2.73']
+      }
+      const result = applyAddManifestEntry(input, 'http://loinc.org', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.73', '2.74'])
+    })
+
+    it('dedupes when the same version is added again', () => {
+      const input = {
+        'http://loinc.org': ['2.74']
+      }
+      const result = applyAddManifestEntry(input, 'http://loinc.org', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.74'])
+    })
+
+    it('adds an unversioned entry when version is empty string', () => {
+      const result = applyAddManifestEntry({}, 'http://loinc.org', '')
+      expect(result['http://loinc.org']).toEqual([''])
+    })
+
+    it('does not mutate the input', () => {
+      const input = {
+        'http://loinc.org': ['2.74']
+      }
+      const snapshot = JSON.parse(JSON.stringify(input))
+      applyAddManifestEntry(input, 'http://snomed.info/sct', '20240301')
+      expect(input).toEqual(snapshot)
     })
   })
 })

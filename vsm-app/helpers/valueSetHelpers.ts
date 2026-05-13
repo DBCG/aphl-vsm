@@ -358,6 +358,69 @@ const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: Selected
   return { codeSystems, valueSets }
 }
 
+/**
+ * Returns a copy of `data` containing only the canonicals whose version list
+ * has at least one unversioned entry (empty/whitespace). Each retained system
+ * has its version list filtered to just the unversioned entries.
+ * Pure: does not mutate `data`.
+ */
+const filterToUnversioned = (data: SelectedManifestDataVersion): SelectedManifestDataVersion => {
+  const result: SelectedManifestDataVersion = {}
+  Object.entries(data || {}).forEach(([system, versions]) => {
+    const unversionedOnly = (versions || []).filter((v) => !v || v.trim() === '')
+    if (unversionedOnly.length > 0) {
+      result[system] = unversionedOnly
+    }
+  })
+  return result
+}
+
+/**
+ * Returns a copy of `data` with the version pin for `system` updated.
+ * - If `oldVersion` is present in the system's version list, it is replaced
+ *   in place with `newVersion` (order preserved).
+ * - If `oldVersion` is not present, `newVersion` is appended (de-duped).
+ * - If `system` doesn't exist in `data`, it is created with `[newVersion]`.
+ * Pure: does not mutate `data`.
+ */
+const applyVersionUpdate = (
+  data: SelectedManifestDataVersion,
+  system: string,
+  oldVersion: string,
+  newVersion: string
+): SelectedManifestDataVersion => {
+  const next: SelectedManifestDataVersion = structuredClone(data || {})
+  const versions = [...(next[system] ?? [])]
+  const idx = versions.indexOf(oldVersion)
+  if (idx >= 0) {
+    versions[idx] = newVersion
+  } else if (!versions.includes(newVersion)) {
+    versions.push(newVersion)
+  }
+  next[system] = versions
+  return next
+}
+
+/**
+ * Returns a copy of `data` with a new manifest entry appended.
+ * - If `canonical` already has versions, `version` is appended unless already present.
+ * - If `canonical` is new, it is added with `[version]`.
+ * Pure: does not mutate `data`.
+ */
+const applyAddManifestEntry = (
+  data: SelectedManifestDataVersion,
+  canonical: string,
+  version: string
+): SelectedManifestDataVersion => {
+  const next: SelectedManifestDataVersion = structuredClone(data || {})
+  const versions = [...(next[canonical] ?? [])]
+  if (!versions.includes(version)) {
+    versions.push(version)
+  }
+  next[canonical] = versions
+  return next
+}
+
 // update grouper valueset with proper version
 const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, version: string): fhir4.ValueSet => {
   const vsCopy = cloneDeep(vs)
@@ -739,5 +802,8 @@ export {
   urlWithoutPinnedVersion,
   // VSP-specific manifest functions
   setExpansionParametersForVSP,
-  getVSPManifestVersions
+  getVSPManifestVersions,
+  filterToUnversioned,
+  applyVersionUpdate,
+  applyAddManifestEntry
 }
