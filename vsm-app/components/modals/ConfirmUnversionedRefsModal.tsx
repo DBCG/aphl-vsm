@@ -31,14 +31,14 @@ const ACTION_COPY: Record<ConfirmUnversionedRefsAction, { title: string; intro: 
   export: {
     title: 'Unversioned manifest references',
     intro:
-      'This VSP has manifest entries without a pinned version. Unversioned entries are not applied during $package and may produce inconsistent results. You can proceed, but the unversioned entries below will not influence the exported bundle.',
-    confirmLabel: 'Export anyway'
+      "The manifest has the following unversioned references. The versions used in building the expansions in the resulting package will be selected by the terminology server performing the expansions. This may be unavoidable for some code systems that don't specify versioning information, such as USPS state abbreviations.",
+    confirmLabel: 'Continue export'
   },
   release: {
     title: 'Unversioned manifest references',
     intro:
-      'This VSP has manifest entries without a pinned version. Unversioned entries are not applied during $release-manifest. You can proceed, but the unversioned entries below will not be pinned in the released VSP.',
-    confirmLabel: 'Release anyway'
+      'The manifest has the following unversioned references. The release process will attempt to pin these references to the latest version available from the terminology server.',
+    confirmLabel: 'Continue release'
   }
 }
 
@@ -79,7 +79,7 @@ const ConfirmUnversionedRefsModal = ({
       <ModalContent style={{ minWidth: '320px' }}>
         <DialogTitle sx={{ textAlign: 'left' }}>{copy.title}</DialogTitle>
         <DialogContent>
-          <Alert severity="warning" sx={{ mb: 1 }}>
+          <Alert severity="info" sx={{ mb: 1 }}>
             <DialogContentText sx={{ color: 'inherit' }}>{copy.intro}</DialogContentText>
           </Alert>
           <Section heading="CodeSystems" items={codeSystems} />
