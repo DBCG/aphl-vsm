@@ -53,7 +53,7 @@ const getCodeSystemVersions = async (
     return res.status(500).json({ error: 'Resolved Endpoint has no address configured' })
   }
 
-  const url = `${baseUrl}/CodeSystem?url=${encodeURIComponent(canonical)}&_summary=true&_count=200`
+  const url = `${baseUrl}/CodeSystem?url=${encodeURIComponent(canonical)}&_count=200`
   const headers: Record<string, string> = { Accept: 'application/fhir+json' }
   if (credentials?.username && credentials?.password) {
     const basic = Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')
