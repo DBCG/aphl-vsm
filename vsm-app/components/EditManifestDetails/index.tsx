@@ -23,7 +23,7 @@ import Tooltip from '@mui/material/Tooltip'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import LoadingIndicator from '../LoadingIndicator'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
-import { Tab, FormControlLabel, Switch, TextField, Stack } from '@mui/material'
+import { Tab, FormControlLabel, Switch, TextField, Stack, Autocomplete, CircularProgress } from '@mui/material'
 import { is } from '@/helpers/is'
 import {
   getIdFromSystem,
@@ -104,6 +104,43 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const [addCanonical, setAddCanonical] = useState('')
   const [addVersion, setAddVersion] = useState('')
   const [showOnlyUnversioned, setShowOnlyUnversioned] = useState(false)
+  const [fetchedVersions, setFetchedVersions] = useState<string[]>([])
+  const [fetchingVersions, setFetchingVersions] = useState(false)
+  const [versionsSource, setVersionsSource] = useState<string | null>(null)
+
+  // Reset fetched versions when canonical or tab changes — they were tied to the prior canonical.
+  useEffect(() => {
+    setFetchedVersions([])
+    setVersionsSource(null)
+  }, [addCanonical, manifestTab])
+
+  const handleFetchVersions = async () => {
+    const canonical = addCanonical.trim()
+    if (!canonical) return
+    setFetchingVersions(true)
+    try {
+      const response = await apiFetch(`/api/codesystem-versions?canonical=${encodeURIComponent(canonical)}`)
+      const result = await response.json()
+      if (!response.ok) {
+        toast.error(result?.error || 'Failed to fetch versions')
+        setFetchedVersions([])
+        setVersionsSource(null)
+        return
+      }
+      const versions: string[] = Array.isArray(result?.versions) ? result.versions : []
+      setFetchedVersions(versions)
+      setVersionsSource(result?.source?.endpointAddress || null)
+      if (versions.length === 0) {
+        toast.info(`No versions returned for ${canonical}`)
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to fetch versions')
+      setFetchedVersions([])
+      setVersionsSource(null)
+    } finally {
+      setFetchingVersions(false)
+    }
+  }
 
   // Determine API endpoint based on whether it's a VSP or Program.
   // VSPs don't need this catalog at all — the dropdown is gone and
@@ -355,15 +392,30 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
             sx={{ flex: 2 }}
             inputProps={{ 'data-add-canonical': true }}
           />
-          <TextField
+          <Autocomplete
+            freeSolo
             size="small"
-            label="Version (optional)"
-            placeholder="e.g. 2.74"
+            options={fetchedVersions}
             value={addVersion}
-            onChange={(e) => setAddVersion(e.target.value)}
+            onInputChange={(_e, value) => setAddVersion(value)}
             sx={{ flex: 1 }}
-            inputProps={{ 'data-add-version': true }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Version (optional)"
+                placeholder="e.g. 2.74"
+                inputProps={{ ...params.inputProps, 'data-add-version': true }}
+              />
+            )}
           />
+          {manifestTab === 'codesystems' && (
+            <Button
+              text={fetchingVersions ? 'Fetching…' : 'Fetch versions'}
+              disabled={fetchingVersions || !addCanonical.trim()}
+              loading={fetchingVersions}
+              onClick={handleFetchVersions}
+            />
+          )}
           <Button
             text="Add"
             disabled={isUpdating || !addCanonical.trim()}
@@ -374,6 +426,11 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
           Leave the version empty to add an unversioned entry — the terminology server will choose the version during expansion.
         </Typography>
+        {versionsSource && fetchedVersions.length > 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            Showing {fetchedVersions.length} version{fetchedVersions.length === 1 ? '' : 's'} from {versionsSource}.
+          </Typography>
+        )}
       </Box>
       <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
         <FormControlLabel
