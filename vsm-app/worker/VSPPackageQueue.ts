@@ -201,10 +201,11 @@ VSPPackageQueue.process(async function (job: any, done) {
       method: 'POST',
       body: JSON.stringify(parametersInput),
       dispatcher: new Agent({
-        connectTimeout: 10 * 60 * 1000,  // 10 minutes
-        headersTimeout: 10 * 60 * 1000,
-        keepAliveTimeout: 10 * 60 * 1000,
-        keepAliveMaxTimeout: 10 * 60 * 1000
+        connectTimeout: 60 * 60 * 1000,  // 1 hour
+        headersTimeout: 60 * 60 * 1000,
+        bodyTimeout: 60 * 60 * 1000,
+        keepAliveTimeout: 60 * 60 * 1000,
+        keepAliveMaxTimeout: 60 * 60 * 1000
       }),
       headers: {
         'Content-Type': 'application/fhir+json',
