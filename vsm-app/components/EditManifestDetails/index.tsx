@@ -10,14 +10,20 @@ import useSWR from 'swr'
 import { fetcher, apiFetch } from '@/utils'
 import { modalStyle } from '@/styles'
 import { SystemSelection, ManifestDataMap, ManifestSystemVersionPair, ManifestUrlNameMap, ManifestData, SelectedManifestDataVersion } from '@/types/manifestTypes'
-import { getProgramManifestVersions, getVSPManifestVersions } from '@/helpers/valueSetHelpers'
+import {
+  getProgramManifestVersions,
+  getVSPManifestVersions,
+  filterToUnversioned,
+  applyVersionUpdate,
+  applyAddManifestEntry
+} from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import LoadingIndicator from '../LoadingIndicator'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
-import { Tab } from '@mui/material'
+import { Tab, FormControlLabel, Switch, TextField, Stack } from '@mui/material'
 import { is } from '@/helpers/is'
 import {
   getIdFromSystem,
@@ -94,13 +100,18 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const [systemNamesByUri, setSystemNamesByUri] = useState<ManifestUrlNameMap>({})
   const [pageLoading, setPageLoading] = useState(true)
 
-  // Determine API endpoint based on whether it's a VSP or Program
+  // VSP-only: manual entry + unversioned filter
+  const [addCanonical, setAddCanonical] = useState('')
+  const [addVersion, setAddVersion] = useState('')
+  const [showOnlyUnversioned, setShowOnlyUnversioned] = useState(false)
+
+  // Determine API endpoint based on whether it's a VSP or Program.
+  // VSPs don't need this catalog at all — the dropdown is gone and
+  // ManifestDetailTable does its own fetch for name lookups.
   const programId = program?.id
   let apiEndpoint: string | null = null
-  if (programId) {
-    apiEndpoint = isVSP
-      ? `/api/value-set-packages/${programId}/manifest?resourceType=${resourceType}`
-      : `/api/programs/${programId}/manifest`
+  if (programId && !isVSP) {
+    apiEndpoint = `/api/programs/${programId}/manifest`
   }
 
   const {
@@ -162,7 +173,8 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
         setPageLoading(false)
       }
     }
-    if (program?.id && selectedSystem && !availableVersions[selectedSystem]) {
+    const programIdForFetch = program?.id
+    if (!isVSP && programIdForFetch && selectedSystem && !availableVersions[selectedSystem]) {
       retrieveSelectedSystemVersions()
     }
   }, [selectedSystem, availableVersions, program?.id, isVSP, resourceType])
@@ -170,6 +182,14 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const selectOptions = useMemo(() => {
     return systemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [systemSelections])
+
+  // VSP-only: filter the displayed manifest to only unversioned entries when the toggle is on.
+  // Defined above the early returns below so the hook order stays stable across renders.
+  const displayManifestData = useMemo(() => {
+    const active = isVSP && manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
+    if (!isVSP || !showOnlyUnversioned) return active
+    return filterToUnversioned(active)
+  }, [isVSP, manifestTab, currentSelectedValueSets, currentSelectedData, showOnlyUnversioned])
 
   const deleteFn = ({ system, version }: ManifestSystemVersionPair) => {
     setIsUpdating(true)
@@ -201,11 +221,11 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     setIsUpdating(false)
   }
 
-  if (isLoading) {
+  if (!isVSP && isLoading) {
     return <LoadingIndicator />
   }
 
-  if (selectOptions.length === 0) {
+  if (!isVSP && selectOptions.length === 0) {
     return (
       <ErrorMessage
         error="No CodeSystem or ValueSet data available from the terminology server. Please check your VSAC credentials in Settings."
@@ -249,6 +269,65 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   // Get the current manifest data based on active tab (for VSPs)
   const activeManifestData = isVSP && manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
 
+  // VSP-only: replace an existing version pin in-place (used by inline edit on table rows)
+  const handleUpdateVersion = (system: string, oldVersion: string, newVersion: string) => {
+    setIsUpdating(true)
+    const sourceData = manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
+    const updated = applyVersionUpdate(sourceData, system, oldVersion, newVersion)
+
+    const dataToSend = {
+      codeSystems: manifestTab === 'codesystems' ? updated : currentSelectedData,
+      valueSets: manifestTab === 'valuesets' ? updated : currentSelectedValueSets
+    }
+
+    updateManifest({
+      programId: program?.id as string,
+      currentSelectedData: dataToSend,
+      setCurrentSelectedData: manifestTab === 'codesystems' ? setCurrentSelectedData : setCurrentSelectedValueSets,
+      setIsUpdating,
+      action: 'add',
+      id: getIdFromSystem(system),
+      version: newVersion,
+      isVSP: true,
+      activeTab: manifestTab
+    })
+  }
+
+  // VSP-only: add a new manifest entry from the free-text canonical + version inputs
+  const handleAddVSP = () => {
+    const canonical = addCanonical.trim()
+    if (!canonical) {
+      toast.error('Canonical URL is required')
+      return
+    }
+    const version = addVersion.trim()
+
+    setIsUpdating(true)
+    const sourceData = manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
+    const updated = applyAddManifestEntry(sourceData, canonical, version)
+
+    const dataToSend = {
+      codeSystems: manifestTab === 'codesystems' ? updated : currentSelectedData,
+      valueSets: manifestTab === 'valuesets' ? updated : currentSelectedValueSets
+    }
+
+    updateManifest({
+      programId: program?.id as string,
+      currentSelectedData: dataToSend,
+      setCurrentSelectedData: manifestTab === 'codesystems' ? setCurrentSelectedData : setCurrentSelectedValueSets,
+      setIsUpdating,
+      action: 'add',
+      id: getIdFromSystem(canonical),
+      version,
+      isVSP: true,
+      activeTab: manifestTab
+    })
+
+    setAddCanonical('')
+    setAddVersion('')
+  }
+
+
   // Filter out empty (unresolved) and provisional versions — only resolved, non-provisional versions should block adding
   const containsNonProvisionalVersion = activeManifestData[selectedSystem]?.filter((i) => i && !i.toLowerCase().includes('provisional')) || []
   const hasUnresolvedVersion = activeManifestData[selectedSystem]?.some((i) => !i) || false
@@ -258,6 +337,67 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     : `Version ${containsNonProvisionalVersion[0] || activeManifestData[selectedSystem]} selected for ${getNameByUri(selectedSystem, systemNamesByUri) || selectedSystem}.`
 
   const shouldDisableAddButton = (activeManifestData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
+
+  const vspManifestContent = (
+    <>
+      <ManifestDescription context="manifest-page" />
+      <Box sx={{ mt: 3, mb: 2, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          Add {manifestTab === 'valuesets' ? 'ValueSet' : 'CodeSystem'} version
+        </Typography>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} alignItems={{ md: 'center' }}>
+          <TextField
+            size="small"
+            label="Canonical URL"
+            placeholder={manifestTab === 'valuesets' ? 'http://hl7.org/fhir/ValueSet/...' : 'http://loinc.org'}
+            value={addCanonical}
+            onChange={(e) => setAddCanonical(e.target.value)}
+            sx={{ flex: 2 }}
+            inputProps={{ 'data-add-canonical': true }}
+          />
+          <TextField
+            size="small"
+            label="Version (optional)"
+            placeholder="e.g. 2.74"
+            value={addVersion}
+            onChange={(e) => setAddVersion(e.target.value)}
+            sx={{ flex: 1 }}
+            inputProps={{ 'data-add-version': true }}
+          />
+          <Button
+            text="Add"
+            disabled={isUpdating || !addCanonical.trim()}
+            loading={isUpdating}
+            onClick={handleAddVSP}
+          />
+        </Stack>
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+          Leave the version empty to add an unversioned entry — the terminology server will choose the version during expansion.
+        </Typography>
+      </Box>
+      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
+        <FormControlLabel
+          control={
+            <Switch
+              size="small"
+              checked={showOnlyUnversioned}
+              onChange={(e) => setShowOnlyUnversioned(e.target.checked)}
+              inputProps={{ 'aria-label': 'Show only unversioned entries' }}
+            />
+          }
+          label="Show only unversioned"
+        />
+      </Stack>
+      <ManifestDetailTable
+        programId={program?.id!}
+        manifestData={displayManifestData}
+        deleteFn={deleteFn}
+        resourceType="vsp"
+        unversionedSeverity="info"
+        onUpdateVersion={handleUpdateVersion}
+      />
+    </>
+  )
 
   const manifestContent = (
     <>
@@ -490,10 +630,10 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
           </TabList>
         </Box>
         <TabPanel value="codesystems" sx={{ p: 0 }}>
-          {manifestContent}
+          {vspManifestContent}
         </TabPanel>
         <TabPanel value="valuesets" sx={{ p: 0 }}>
-          {manifestContent}
+          {vspManifestContent}
         </TabPanel>
       </TabContext>
     )

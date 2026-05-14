@@ -474,6 +474,7 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
             ...manifestData.valueSets
           }}
           resourceType="vsp"
+          unversionedSeverity="info"
         />
       </ManifestContainer>
     </Col>
