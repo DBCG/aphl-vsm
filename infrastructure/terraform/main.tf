@@ -91,9 +91,10 @@ module "ebs_kms_key" {
   description = "Key to encrypt EKS managed node group volumes"
 
   # Policy
-  key_administrators = [
-    data.aws_caller_identity.current.arn
-  ]
+  key_administrators = concat(
+    [data.aws_caller_identity.current.arn],
+    var.kms_key_administrators
+  )
   key_service_users = [
     # required for the ASG to manage encrypted volumes for nodes
     "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
