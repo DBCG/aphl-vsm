@@ -20,19 +20,19 @@ import { fetcher } from '@/utils'
 import { Box, Button, FormControl, Stack, TextField, Typography } from '@mui/material'
 import useSWR, { mutate as globalMutate } from 'swr'
 import { Row as RowStyle } from '@/styles'
-
-// Revalidate the validity ping for an endpoint after its credentials change,
-// so the table Status cell re-tests instead of showing a stale result.
-const revalidateEndpointStatus = (endpointId?: string) => {
-  if (endpointId) globalMutate(`/api/test-terminology-endpoint?endpointId=${endpointId}`)
-}
 import { toast } from 'react-toastify'
 import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
 import { useSession } from 'next-auth/react'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
 import { apiFetch } from '@/utils'
-import { ARTIFACT_ROUTE_URL } from '@/constants'
+import { ARTIFACT_ROUTE_URL, AUTH_TYPE } from '@/constants'
+
+// Revalidate the validity ping for an endpoint after its credentials change,
+// so the table Status cell re-tests instead of showing a stale result.
+const revalidateEndpointStatus = (endpointId?: string) => {
+  if (endpointId) globalMutate(`/api/test-terminology-endpoint?endpointId=${endpointId}`)
+}
 
 const Col = styled.div`
   display: flex;
@@ -323,7 +323,7 @@ const CredentialsItem = (currentServerData: any) => {
     return <LoadingIndicator />
   }
 
-  const isOpenEndpoint = getAuthenticationTypeString(data?.extension || []) === 'none'
+  const isOpenEndpoint = getAuthenticationTypeString(data?.extension || []) === AUTH_TYPE.NONE
 
   const reload = async () => {
     reloadCurrentCredentials()

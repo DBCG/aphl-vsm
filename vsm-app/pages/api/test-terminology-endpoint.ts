@@ -5,7 +5,7 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import handler from '@/helpers/server/handler'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
-import { AUTHENTICATION_TYPE_URL } from '@/constants'
+import { AUTHENTICATION_TYPE_URL, AUTH_TYPE } from '@/constants'
 
 const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   try {
@@ -33,11 +33,11 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
       return res.status(404).json({ error: 'Terminology endpoint not found' })
     }
 
-    // Stored value is the option KEY ('basic' | 'none'), not the label — see
-    // TerminologyServerForm/types.ts (authenticationTypes) and the form's submit.
+    // Stored value is the option KEY (AUTH_TYPE.BASIC | AUTH_TYPE.NONE), not the
+    // label — shared via constants with the endpoint form and settings page.
     const authType = matchingEndpoint.extension?.find((ext: fhir4.Extension) => ext.url === AUTHENTICATION_TYPE_URL)?.valueString
     let basicAuthHeader: string | undefined
-    if (authType === 'basic') {
+    if (authType === AUTH_TYPE.BASIC) {
       // getCredentials throws when none are stored.
       let authCredentials
       try {
