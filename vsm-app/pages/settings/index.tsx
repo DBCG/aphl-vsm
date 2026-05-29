@@ -18,8 +18,14 @@ import { useRouter } from 'next/router'
 import { getAuthenticationTypeString } from '@/components/TerminologyServerForm'
 import { fetcher } from '@/utils'
 import { Box, Button, FormControl, Stack, TextField, Typography } from '@mui/material'
-import useSWR from 'swr'
+import useSWR, { mutate as globalMutate } from 'swr'
 import { Row as RowStyle } from '@/styles'
+
+// Revalidate the validity ping for an endpoint after its credentials change,
+// so the table Status cell re-tests instead of showing a stale result.
+const revalidateEndpointStatus = (endpointId?: string) => {
+  if (endpointId) globalMutate(`/api/test-terminology-endpoint?endpointId=${endpointId}`)
+}
 import { toast } from 'react-toastify'
 import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
 import { useSession } from 'next-auth/react'
@@ -106,7 +112,7 @@ const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, us
   }
 }
 
-const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
+const AddEndpointForm = ({ endpointId, closeForm }: { endpointId?: string; closeForm: () => void }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
@@ -157,9 +163,9 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
         <Box>
           <Button onClick={() => closeForm()}> Cancel </Button>
           <Button
-            onClick={() => submitNewCredentials(availableEndpoints[0]?.id, username, password)}
+            onClick={() => endpointId && submitNewCredentials(endpointId, username, password)}
             sx={{ ml: '1rem' }}
-            disabled={!username.length || !password.length || !availableEndpoints?.[0]?.id}
+            disabled={!username.length || !password.length || !endpointId}
           >
             Update Credentials
           </Button>
@@ -169,10 +175,20 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
   )
 }
 
-const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: boolean }) => {
+const ValidStatus = ({ isValid, isLoading, needsCredentials }: { isValid: boolean, isLoading: boolean, needsCredentials?: boolean }) => {
   if (isLoading) return (
     <p>Validating endpoint...</p>
   )
+
+  if (needsCredentials) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', color: 'var(--warning-medium)', whiteSpace: 'nowrap' }}>
+        <Typography style={{ color: 'inherit', whiteSpace: 'nowrap' }}>Needs credentials</Typography>
+        <WarningIcon style={{ color: 'inherit', marginLeft: '.2rem', marginBottom: '.1rem', width: '1.1rem' }} />
+      </div>
+    )
+  }
+
   const inner = isValid ? (
     <>
       <Typography style={{ color: 'inherit' }}>Valid</Typography>
@@ -193,51 +209,46 @@ const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: bool
 }
 
 const EndpointStatusCell = ({ id, onValidityChange }: { id: string, onValidityChange: (id: string, isValid: boolean) => void }) => {
-  const { isEndpointValid, pingLoading } = useTestTermEndpoint({ endpointId: id })
+  const { isEndpointValid, needsCredentials, pingLoading } = useTestTermEndpoint({ endpointId: id })
   useEffect(() => {
-    if (!pingLoading) onValidityChange(id, isEndpointValid)
+    // "Needs credentials" is a config-todo, not an invalid/unreachable endpoint —
+    // don't let it trip the "one or more endpoints are invalid" banner.
+    if (!pingLoading) onValidityChange(id, isEndpointValid || needsCredentials)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isEndpointValid, pingLoading])
-  return <ValidStatus isValid={isEndpointValid} isLoading={pingLoading} />
+  }, [id, isEndpointValid, needsCredentials, pingLoading])
+  return <ValidStatus isValid={isEndpointValid} needsCredentials={needsCredentials} isLoading={pingLoading} />
 }
 
 const CredentialsItem = (currentServerData: any) => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
-  const {data, currentCredentialsByServerId, currentCredentialsByServerIdLoading, reloadCurrentCredentials} = currentServerData
+  const {data, currentCredentialsByServerId, credentialsByServerIdLoading, reloadCurrentCredentials} = currentServerData
   const [isAdding, setIsAdding] = useState(false)
-  
-  const { data: allCurrentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
 
   const refetchData = () => {
     reloadCurrentCredentials()
-    reloadCurrentEndpoints()
   }
 
-  const [availableEndpoints, credentials] = useMemo(() => {
-    const availEnd = [] as EndpointDetails[]
+  // Derive this row's credential from the row data itself (data is the endpoint
+  // for this expandable row) plus the credentials the parent already fetched.
+  // No separate /api/endpoint fetch — that caused a pagination mismatch and
+  // stale-memo bugs.
+  const credentials = useMemo(() => {
     const creds = [] as ({ username: string; password: string; } & EndpointDetails)[]
-    allCurrentEndpoints?.endpoints
-    ?.filter((e: any) => e?.id === data?.id)
-    ?.forEach((endpoint: fhir4.Endpoint) => {
-      const foundCred = currentCredentialsByServerId?.find((cred: any) => cred.terminologyServerId === endpoint.id)
-      const baseEndpoint = {
-        id: endpoint.id,
-        name: endpoint.name,
-        address: endpoint.address
-      } as EndpointDetails
+    if (data?.id) {
+      const foundCred = currentCredentialsByServerId?.find((cred: any) => cred.terminologyServerId === data.id)
       if (foundCred) {
         creds.push({
-          ...baseEndpoint,
+          id: data.id,
+          name: data.name,
+          address: data.address,
           username: foundCred.username,
           password: foundCred.password
         })
-      } else {
-        availEnd.push(baseEndpoint)
       }
-    })
-    return [availEnd, creds]
-  }, [currentCredentialsByServerId, allCurrentEndpoints])
+    }
+    return creds
+  }, [currentCredentialsByServerId, data?.id, data?.name, data?.address])
 
     const {
     isEndpointValid,
@@ -250,7 +261,7 @@ const CredentialsItem = (currentServerData: any) => {
 
   useEffect(() => {
     pingMutate('/api/test-terminology-endpoint')
-  }, [credentials?.[0]])
+  }, [credentials?.[0]?.id])
 
 
   const updateCredential = async (id: string, username: string, password: string) => {
@@ -268,6 +279,7 @@ const CredentialsItem = (currentServerData: any) => {
       if (result.ok) {
         toast.success('Credential updated successfully')
         await reloadCurrentCredentials()
+        revalidateEndpointStatus(id)
         return
       } else {
         const json = await result.json()
@@ -293,6 +305,7 @@ const CredentialsItem = (currentServerData: any) => {
 
       if (result.ok) {
         toast.success('Credential deleted successfully')
+        revalidateEndpointStatus(id)
       } else {
         const json = await result.json()
         console.error(json)
@@ -306,7 +319,7 @@ const CredentialsItem = (currentServerData: any) => {
 
   const isOdd = data?.index % 2 === 0
 
-  if (currentCredentialsByServerIdLoading || endpointsLoading) {
+  if (credentialsByServerIdLoading) {
     return <LoadingIndicator />
   }
 
@@ -314,7 +327,6 @@ const CredentialsItem = (currentServerData: any) => {
 
   const reload = async () => {
     reloadCurrentCredentials()
-    reloadCurrentEndpoints()
   }
 
   if (isOpenEndpoint) {
@@ -342,10 +354,10 @@ const CredentialsItem = (currentServerData: any) => {
       )}
       {isAdding && (
         <AddEndpointForm
-          isOdd={isOdd}
-          availableEndpoints={availableEndpoints}
+          endpointId={data?.id}
           closeForm={() => {
             refetchData()
+            revalidateEndpointStatus(data?.id)
             setIsAdding(false)
           }}
         />
@@ -502,9 +514,12 @@ const TerminologyEndpoints: NextPage = () => {
 
   const [endpointValidity, setEndpointValidity] = useState<Record<string, boolean>>({})
 
+  // Only flag endpoints that currently exist and have been explicitly tested as
+  // invalid. Endpoints not yet tested (undefined) shouldn't trip the banner, and
+  // stale validity entries for deleted endpoints must be ignored.
   const anyEndpointInvalid = useMemo(
-    () => Object.values(endpointValidity).some((isValid) => !isValid),
-    [endpointValidity]
+    () => data.some((ep) => ep.id != null && endpointValidity[ep.id] === false),
+    [data, endpointValidity]
   )
 
   const columns: TableColumn<fhir4.Endpoint>[] = useMemo(
@@ -549,7 +564,7 @@ const TerminologyEndpoints: NextPage = () => {
       {
         name: 'Status',
         sortable: false,
-        maxWidth: '8rem',
+        minWidth: '11rem',
         cell: (row: fhir4.Endpoint) => (
           <EndpointStatusCell
             id={row.id!}
