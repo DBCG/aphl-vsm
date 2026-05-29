@@ -16,6 +16,7 @@ import { EndpointResponse } from '../api/endpoint'
 import { PaginationState } from '@/components/Program/ProgramsTab'
 import { useRouter } from 'next/router'
 import { getAuthenticationTypeString } from '@/components/TerminologyServerForm'
+import { authenticationTypes } from '@/components/TerminologyServerForm/types'
 import { fetcher } from '@/utils'
 import { Box, Button, FormControl, Stack, TextField, Typography } from '@mui/material'
 import useSWR, { mutate as globalMutate } from 'swr'
@@ -546,7 +547,10 @@ const TerminologyEndpoints: NextPage = () => {
       },
       {
         name: 'Authentication',
-        selector: (row: fhir4.Endpoint) => getAuthenticationTypeString(row.extension || []) || '',
+        selector: (row: fhir4.Endpoint) => {
+          const authType = getAuthenticationTypeString(row.extension || [])
+          return (authType && authenticationTypes[authType as keyof typeof authenticationTypes]) || authType || ''
+        },
         sortable: false,
         maxWidth: '8rem',
         wrap: true

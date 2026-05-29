@@ -62,10 +62,6 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
       customHeaders: basicAuthHeader ? { Authorization: `Basic ${basicAuthHeader}` } : {}
     })
 
-    Logger.getLogger().info(
-      `Testing endpoint ${endpointId} at ${matchingEndpoint.address} (auth: ${basicAuthHeader ? 'basic' : 'none'})`
-    )
-
     const serverResponse = await activeTerminologyClient.request('/metadata')
     // @ts-ignore
     if (serverResponse?.resourceType == 'CapabilityStatement') {
