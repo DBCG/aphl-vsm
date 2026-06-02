@@ -12,6 +12,7 @@ const useTestTermEndpoint = (serverData: ServerData) => {
   const { data, error, isLoading, mutate } = useSWR(endpointId ? endpoint : null, fetcher)
   return {
     isEndpointValid: data?.status === 'ok',
+    needsCredentials: data?.status === 'no-credentials',
     pingLoading: isLoading,
     pingError: error,
     pingMutate: mutate
