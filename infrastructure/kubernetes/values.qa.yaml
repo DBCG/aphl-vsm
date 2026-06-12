@@ -1,4 +1,4 @@
-replicaCount: 0
+replicas: 0
 tag: ""
 namespace: "vsm-qa"
 hapi_fhir_jpa_server_starter:
