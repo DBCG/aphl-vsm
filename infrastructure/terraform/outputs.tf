@@ -187,46 +187,12 @@ output "aws_auth_configmap_yaml" {
   value       = module.eks.aws_auth_configmap_yaml
 }
 
-output "rds_vsm_cqf_ruler_endpoint" {
-  description = "Endpoint of the CQF-ruler RDS cluster"
-  value       = aws_db_instance.vsm-cqf-ruler.endpoint
+output "rds_sdh_dev_db_01_endpoint" {
+  description = "Endpoint of the primary RDS instance"
+  value       = aws_db_instance.sdh-dev-db-01.endpoint
 }
 
-output "rds_vsm_keycloak_endpoint" {
-  description = "Endpoint of the Keycloak RDS cluster"
-  value       = aws_db_instance.vsm-keycloak.endpoint
-}
-
-output "cqf_ruler_db_password" {
-  value     = random_password.vsm-cqf-ruler-password.result
-  sensitive = true
-}
-
-output "keycloak_db_password" {
-  value     = random_password.vsm-keycloak-password.result
-  sensitive = true
-}
-
-output "rds_vsm_cqf_ruler_endpoint_qa" {
-  description = "Endpoint of the CQF-ruler RDS cluster"
-  value       = aws_db_instance.vsm-cqf-ruler-qa.endpoint
-}
-
-output "rds_vsm_keycloak_endpoint_qa" {
-  description = "Endpoint of the Keycloak RDS cluster"
-  value       = aws_db_instance.vsm-keycloak-qa.endpoint
-}
-
-output "cqf_ruler_db_password_qa" {
-  value     = random_password.vsm-cqf-ruler-password-qa.result
-  sensitive = true
-}
-
-output "keycloak_db_password_qa" {
-  value     = random_password.vsm-keycloak-password-qa.result
-  sensitive = true
-}
-
-output "redis_cache_endpoint" {
-  value = aws_elasticache_replication_group.redis-cache.primary_endpoint_address
+output "vsm_cache_dev_endpoint" {
+  description = "Primary endpoint for the dev Valkey cache"
+  value       = aws_elasticache_replication_group.vsm-cache-dev.primary_endpoint_address
 }

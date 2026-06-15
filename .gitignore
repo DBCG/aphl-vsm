@@ -5,6 +5,7 @@ eRSDTransformerWorkspace/plandefinition/plandefinition-us-ecr-specification.xml
 
 # terraform
 .terraform/
+.terraform.lock.hcl
 *.out
 *.tfstate.backup
 terraform.tfstate
