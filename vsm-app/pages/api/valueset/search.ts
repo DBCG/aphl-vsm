@@ -90,7 +90,6 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
       case 'title':
         searchParams = {
           'title:contains': search,
-          status: 'active',
           _count: count,
           _offset: typeof offset === 'string' && offset
         }
@@ -155,7 +154,6 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
             )
               ?.filter(is.promiseFulfilled)
               ?.map((val) => val.value)
-              ?.filter((vs) => vs.status === 'active')
 
             const successfulOIDs = responseInfo?.valueSets?.map((v) => v?.id)
             responseInfo.total = successfulOIDs.length
@@ -193,8 +191,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
         // http://cts.nlm.nih.gov/fhir/ValueSet?status=active
         // VSAC also does not respect _sort
         searchParams = {
-          url: search,
-          status: 'active'
+          url: search
         } as SearchParams
 
         if (typeof offset === 'string') {
