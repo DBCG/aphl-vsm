@@ -88,6 +88,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       steward,
       title,
       codesBySystemToAdd,
+      codesBySystemToRemove,
       grouperIds,
       programId,
       updatedConditions,
@@ -96,7 +97,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     } = req.body
     const userId = session?.user.id
     let codeSystemToEdit
-    const systemUrls = Object.keys(codesBySystemToAdd)
+    const systemUrls = Object.keys(codesBySystemToAdd ?? {})
 
     const resourcesToSaveFirst = [] as BuilderItem[]
     const resourcesToSaveLast = [] as BuilderItem[]
@@ -152,7 +153,9 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       if (codesBySystemToAdd) {
         provisionalLeaf = addOrRemoveVsCodes(provisionalLeaf, codesBySystemToAdd, 'add')
       }
-      // TODO update leaf as necessary
+      if (codesBySystemToRemove) {
+        provisionalLeaf = addOrRemoveVsCodes(provisionalLeaf, codesBySystemToRemove, 'remove')
+      }
     } else {
       // first, create the value set
       provisionalLeaf = generateProvisionalVs({

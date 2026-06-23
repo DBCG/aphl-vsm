@@ -28,6 +28,7 @@ type BooleanSetState = Dispatch<SetStateAction<boolean>>
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
+  onRemoveCode?: (vsId: string, system: string, code: string) => Promise<void>
 }
 
 interface RowItem {
@@ -207,7 +208,7 @@ const NoDataComponent = () => {
   )
 }
 
-const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
+const CodeDetailsExpanded = ({ data, onRemoveCode }: CodeDetailsProp) => {
   const composeInclude = data?.compose?.include
 
   const codesBySystem = composeInclude
@@ -228,10 +229,23 @@ const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
         selector: (row: RowItem) => row.system,
         minWidth: '20rem',
         cell: (row: RowItem) => (<p>{row.system}</p>)
+      },
+      {
+        name: '',
+        button: true,
+        omit: !onRemoveCode,
+        cell: (row: RowItem) => (
+          <IconButton
+            size='small'
+            onClick={() => onRemoveCode?.(data.id!, row.system, row.code)}
+          >
+            <DeleteForever fontSize='small' sx={{ color: 'red' }} />
+          </IconButton>
+        )
       }
     ]
     return fields
-  }, [data])
+  }, [data, onRemoveCode])
 
   return (
     // @ts-ignore
@@ -261,6 +275,7 @@ const ProvisionalVSEdit = () => {
 
   // deleting
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [removeCodeTarget, setRemoveCodeTarget] = useState<{ vsId: string; system: string; code: string } | undefined>(undefined)
 
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const existingProvisionalCs = useGetProvisionalCS(selectedCodeSystemBase?.value)
@@ -497,6 +512,31 @@ const ProvisionalVSEdit = () => {
     setSelectedStagingRows(r.selectedRows)
   }
 
+  const handleRemoveCode = async (vsId: string, system: string, code: string) => {
+    setRemoveCodeTarget({ vsId, system, code })
+  }
+
+  const confirmRemoveCode = async () => {
+    if (!removeCodeTarget) return
+    const { vsId, system, code } = removeCodeTarget
+    const vs = provisionalVS?.find((v: fhir4.ValueSet) => v.id === vsId)
+    const result = await apiFetch('/api/valueset/provisional', {
+      method: 'POST',
+      body: JSON.stringify({
+        provisionalVsIdForUpdate: vsId,
+        title: vs?.title,
+        codesBySystemToRemove: { [system]: [{ code, display: '', definition: '' }] }
+      })
+    })
+    setRemoveCodeTarget(undefined)
+    if (result.ok) {
+      toast.success('Code removed from provisional value set')
+      mutateProvVs()
+    } else {
+      toast.error('Failed to remove code')
+    }
+  }
+
   const programIdsToRemoveProvisionalVs = useMemo(() => provisionalContext?.filter((programItem: any) => {
     return programItem?.provisionalLeafs?.find((leaf: any) => {
       return leaf?.id === provisionalVsIdForUpdate
@@ -674,6 +714,29 @@ const ProvisionalVSEdit = () => {
           </div>
         </Box>
       </Modal>
+      <Modal
+        open={Boolean(removeCodeTarget)}
+        onClose={() => setRemoveCodeTarget(undefined)}
+        aria-labelledby="remove-code-modal-title"
+        aria-describedby="remove-code-modal-description"
+      >
+        <Box sx={modalStyle}>
+          <Typography id="remove-code-modal-title" variant="h6" component="h2">
+            Confirm: Remove Code
+          </Typography>
+          <Typography id="remove-code-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
+            {`Remove code "${removeCodeTarget?.code}" from this provisional value set? This cannot be undone.`}
+          </Typography>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+            <Button
+              onClick={() => setRemoveCodeTarget(undefined)}
+              style={{ backgroundColor: 'darkgray' }}
+              text='Cancel'
+            />
+            <Button onClick={confirmRemoveCode} text='Remove' />
+          </div>
+        </Box>
+      </Modal>
       <ErrorMessage error={provVsError} />
       <ErrorMessage error={provContextError} />
       <DataTable
@@ -681,6 +744,7 @@ const ProvisionalVSEdit = () => {
         title={`${!can(session, 'edit') ? 'View' : 'Select to Edit'} Existing Provisional Value Sets`}
         expandableRows={true}
         expandableRowsComponent={CodeDetailsExpanded}
+        expandableRowsComponentProps={{ onRemoveCode: can(session, 'edit') ? handleRemoveCode : undefined }}
         selectableRows={true}
         selectableRowsSingle={true}
         data={provisionalVS || []}
