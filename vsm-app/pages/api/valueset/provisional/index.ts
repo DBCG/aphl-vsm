@@ -103,12 +103,13 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     const resourcesToSaveLast = [] as BuilderItem[]
 
     for (const systemUrl of systemUrls) {
-      // if provisional code system already exists, update the codesystem with any new items
+      // if provisional code system already exists, update the codesystem with any new items.
+      // provisional code systems are indexed via provisional-cs-by-base-url. Use this to prevent duplicate creation.
       const existingCS = await FhirClient.getInstance().search({
         resourceType: 'CodeSystem',
         searchParams: {
           version: 'PROVISIONAL',
-          system: systemUrl
+          'provisional-cs-by-base-url': systemUrl
         }
       })
 

@@ -98,7 +98,8 @@ interface ExistingCodesProps {
   setClearStagedCodes: BooleanSetState
   toggledClearProvCodeRows: boolean
   setToggledClearProvCodeRows: BooleanSetState
-  systemName: string
+  systemName: string,
+  systemUrl: string, //baseUrl shared by existing and new provisional codes
   codeSystem: fhir4.CodeSystem
   handleAddCodes: (codes: CodesBySystem, action: 'add' | 'remove') => void
 }
@@ -123,7 +124,7 @@ export const findProgramByProvisionalLeaf = (leafUrlToFind: string, provisionalC
   return programIds
 }
 
-const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes, toggledClearProvCodeRows, setToggledClearProvCodeRows, setClearStagedCodes }: ExistingCodesProps) => {
+const ExistingCodesTable = ({ systemName, systemUrl, codeSystem, handleAddCodes, toggledClearProvCodeRows, setToggledClearProvCodeRows, setClearStagedCodes }: ExistingCodesProps) => {
   const [selectedRows, setSelectedRows] = useState<CodeInfo[]>([])
 
   const handleChangeSelectedRows = (r: SelectedRowsInExistingProvCodes) => {
@@ -133,7 +134,7 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes, toggledCle
   const handleClear = () => setToggledClearProvCodeRows((t: boolean) => !t)
 
   const handleAdd = () => {
-    handleAddCodes({ [codeSystem.url!]: [...selectedRows] }, 'add')
+    handleAddCodes({ [systemUrl]: [...selectedRows] }, 'add')
     handleClear()
   }
 
@@ -483,7 +484,11 @@ const ProvisionalVSEdit = () => {
     }
     const keys = Object.keys(codesBySystemToAdd) || []
     keys.forEach(k => {
-      const name = csSelectOptions.find(o => o.value === k)?.label as string
+      // if a provisional CS exists for a given base URL, use its name
+      const name = (
+          provisionalCS?.find((cs: fhir4.CodeSystem) => cs?.extension?.find(ext => ext.valueUri === k))?.name
+          ?? csSelectOptions.find(o => o.value === k)?.label
+      ) as string
       return codesBySystemToAdd[k].forEach(dataItem => {
         result.push({ system: k, name, ...dataItem })
       })
@@ -836,6 +841,7 @@ const ProvisionalVSEdit = () => {
                     setToggledClearProvCodeRows={setToggledClearProvCodeRows}
                     toggledClearProvCodeRows={toggledClearProvCodeRows}
                     systemName={selectedCodeSystemBase?.label!}
+                    systemUrl={selectedCodeSystemBase?.value!}
                     codeSystem={existingProvisionalCs?.provisionalCS?.find((c: fhir4.CodeSystem | undefined) => c?.extension?.find(ext => ext.valueUri === selectedCodeSystemBase?.value))!}
                     handleAddCodes={handleUpdateStaging}
                     setClearStagedCodes={setClearStagedCodes}
