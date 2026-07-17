@@ -183,23 +183,23 @@ const generateReadMeSheet = (
   const currentVersionHeader = readmeSheet.addRow(['Current Version'])
   currentVersionHeader.font = { bold: true }
   const currentVersion = readmeSheet.addRows([
+    ['Name', targetGrouperLibrary.title],
+    ['Purpose', targetGrouperLibrary?.purpose],
+    ['RCTC OID', getOid(targetGrouperLibrary)],
+    ['RCTC Definition Version', targetGrouperLibrary?.version],
+    ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
+    ['RCTC Release Label', targetGrouperLibrary?.version]
+  ])
+  readmeSheet.addRow([]) // Add new line
+  const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
+  previousVersionHeader.font = { bold: true }
+  const previousVersion = readmeSheet.addRows([
     ['Name', sourceGrouperLibrary.title],
     ['Purpose', sourceGrouperLibrary?.purpose],
     ['RCTC OID', getOid(sourceGrouperLibrary)],
     ['RCTC Definition Version', sourceGrouperLibrary?.version],
     ['RCTC Definition Effective Start Date', sourceGrouperLibrary?.effectivePeriod?.start],
     ['RCTC Release Label', sourceGrouperLibrary?.version]
-  ])
-  readmeSheet.addRow([]) // Add new line
-  const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
-  previousVersionHeader.font = { bold: true }
-  const previousVersion = readmeSheet.addRows([
-    ['Name', targetGrouperLibrary.title],
-    ['Purpose', targetGrouperLibrary?.purpose],
-    ['RCTC OID', getOid(sourceGrouperLibrary)],
-    ['RCTC Definition Version', targetGrouperLibrary?.version],
-    ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
-    ['RCTC Release Label', targetGrouperLibrary?.version]
   ])
   const cellsToStyle = [currentVersion, previousVersion]
   cellsToStyle.forEach((rows) => {
