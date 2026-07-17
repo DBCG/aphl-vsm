@@ -20,7 +20,7 @@ type ChangeValue = {
   display: string
   version: string
   system: string
-  code: string
+  codeValue: string
   memberOid: string
 }
 
@@ -410,7 +410,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       const fillCodeRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
-            const { display: descriptor, memberOid, version, code, codeSystemName, parentValueSetName } = rowValue
+            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName, parentValueSetName } = rowValue
             const status = startCase(grouperVs?.status || '')
             const remapInfo = status === 'Active' ? 'No' : 'Yes'
             codeRows.push([parentValueSetName, memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])
