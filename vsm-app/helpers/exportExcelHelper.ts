@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
+import { fetchByCanonical } from '@/helpers/server/serverValueSetHelper'
 import { startCase, times, uniq } from 'lodash'
 import { Agent, fetch as f } from 'undici'
 interface CollectedChange extends ChangeValue {
@@ -308,18 +309,22 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
   await Promise.all(
     groupingValueSetsChangeLogs.map(async (page: any) => {
       const currentId = page.newData?.id?.value || page.oldData?.id?.value // use new ID unless it's a deleted grouper
-      const grouperVs = (await FhirClient.getInstance().read({
+      const currentVsVersion = page.newData?.version?.value || page.oldData?.version?.value
+      // page.newData/oldData.id.value is not a real server-assigned resource id - look it up by canonical url/version instead
+      const grouperVsSearch = await fetchByCanonical({
+        client: FhirClient.getInstance(),
         resourceType: 'ValueSet',
-        id: currentId
-      })) as fhir4.ValueSet
+        canonical: currentVsVersion ? `${page.url}|${currentVsVersion}` : page.url
+      })
+      const grouperVs = grouperVsSearch?.entry?.[0]?.resource as fhir4.ValueSet
       const groupingValueSetSheet: ExcelJS.Worksheet = workbook.addWorksheet(grouperVs?.name || grouperVs?.title)
       groupingValueSetSheet.getColumn('A').width = 30
       groupingValueSetSheet.getColumn('B').width = 60
       const vsInfo = [
-        ['Value Set Name', page.title],
+        ['Value Set Name', page.newData?.title?.value],
         ['OID', grouperVs?.identifier?.[0]?.value?.replace('urn:oid:', '')],
         ['Type', 'Grouping'],
-        ['Definition Version', grouperVs.status],
+        ['Definition Version', grouperVs?.status],
         ['Steward', getVsSteward(grouperVs)],
         ['Author', getVsAuthor(grouperVs)],
         ['Publisher', grouperVs.publisher],
