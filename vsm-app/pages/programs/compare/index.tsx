@@ -292,16 +292,9 @@ const ProgramCompare = () => {
           return json // still in progress
         }
 
-        const diffItemToAdd = {
-          [base.value]: {
-            [target.value]: json
-          }
-        }
-
-        const existingDiffData = rawDiffData || {}
-
-        const updatedDiffData = Object.assign({}, existingDiffData, diffItemToAdd)
-        setRawDiffData(updatedDiffData)
+        // Note: `json` here is the raw Bull Job envelope, not the parsed changelog data
+        // (that only exists once JSON.parse(json.returnvalue) runs in setDiffResults).
+        // Don't write it into rawDiffData - that's reserved for the actual parsed changelog.
         return json
       }
     } catch (e) {
@@ -318,7 +311,12 @@ const ProgramCompare = () => {
     const existingData = rawDiffData?.[baseProgram.value]?.[targetProgram.value]
 
     if (existingData) {
-      // just use existing data if it's there
+      // use existing data if it's there, but still need to build the viewer's
+      // formatted data since it may have been cleared by a dropdown change
+      // @ts-ignore
+      const formattedChangelog = createTableData(existingData)
+      // @ts-ignore
+      setDiffViewerFormattedData(formattedChangelog)
       setIsLoadingDiff(false)
       toast.success('Using existing difference data')
       
