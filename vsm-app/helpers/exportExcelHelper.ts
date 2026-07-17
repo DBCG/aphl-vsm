@@ -368,8 +368,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           })
         })
       }
-      const oldToMerge = collector(page.oldData?.leafValuesets)
-      const newToMerge = collector(page.newData?.leafValuesets)
+      const oldToMerge = collector(page.oldData?.leafValueSets)
+      const newToMerge = collector(page.newData?.leafValueSets)
       const leafValueSets = mergeChanges(oldToMerge, newToMerge)
       fillGroupingListTableRows(leafValueSets)
 
