@@ -97,7 +97,7 @@ const autosortTable = (table: ExcelJS.Table, tableRows: ExcelJS.Rows, sheet: Exc
 }
 
 const changeLogDiffOperation = async (sourceId: string, targetId: string, input: fhir4.Parameters) => {
-  const changeJson = await f(`${FhirClient.getInstance().baseUrl}/$create-changelog`, {
+  const changeJson = await f(`${FhirClient.getInstance().baseUrl}/Library/$create-changelog`, {
     body: JSON.stringify(input),
     method: 'POST',
     dispatcher: new Agent({
