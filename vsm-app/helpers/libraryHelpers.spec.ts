@@ -273,6 +273,21 @@ describe('libraryHelpers', () => {
         expect(map[`${bareUrl}|1234`]).toBe('emergent')
         expect(map[bareUrl]).toBe('routine')
       })
+
+      it('should not let a pinned entrys bare url fallback clobber the unpinned entrys own value, regardless of processing order', () => {
+        const bareUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/33333'
+        // same fixture as above, but with the unpinned entry listed FIRST - the bare-url
+        // lookup must resolve the same way either way
+        testProgram.relatedArtifact = [
+          buildPriorityRelatedArtifact(bareUrl, 'routine'),
+          buildPriorityRelatedArtifact(`${bareUrl}|1234`, 'emergent')
+        ]
+
+        const map = getVSPriority(testProgram)
+
+        expect(map[`${bareUrl}|1234`]).toBe('emergent')
+        expect(map[bareUrl]).toBe('routine')
+      })
     })
 
     describe('setVSPriority', () => {
