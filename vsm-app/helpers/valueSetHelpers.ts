@@ -798,6 +798,33 @@ const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
     ?.filter((x) => !!x) // filter out undefined
     ?.flat() || []
 
+// how many distinct pins (across every grouper in the program) currently point at this bare canonical.
+// >1 means multiple grouper memberships share the same bare url, so it's unsafe to resolve a
+// depends-on entry for one of them by bare url alone
+const countDistinctPinsForCanonical = (grouperValueSets: fhir4.ValueSet[], vsCanonical: string): number => {
+  const allLeafPins = uniq(grouperValueSets.flatMap((vs) => getLeafUrlsFromGrouper(vs)))
+  return allLeafPins.filter((pin) => pin?.split('|')?.[0] === vsCanonical).length
+}
+
+// whether a depends-on relatedArtifact entry belongs to the leaf/pin currently being updated,
+// and so should have its resource updated to the leaf's new pin.
+const isDependsOnEntryForLeaf = ({
+  entryResource,
+  previousPinnedCanonical,
+  vsCanonical,
+  isAmbiguous
+}: {
+  entryResource: string | undefined
+  previousPinnedCanonical: string
+  vsCanonical: string
+  isAmbiguous: boolean
+}): boolean => {
+  const matchesPinnedCanonical = entryResource === previousPinnedCanonical
+  //only safe when this canonical isn't ambiguous
+  const matchesBareCanonical = !isAmbiguous && entryResource?.split('|')?.[0] === vsCanonical
+  return matchesPinnedCanonical || matchesBareCanonical
+}
+
 export {
   organizeValueSetDefinitionData,
   getVsSteward,
@@ -810,6 +837,8 @@ export {
   getProgramManifestVersions,
   getTerminologySource,
   getLeafUrlsFromGrouper,
+  countDistinctPinsForCanonical,
+  isDependsOnEntryForLeaf,
   removeValueSetFromGrouper,
   setExpansionParameters,
   getKeywords,

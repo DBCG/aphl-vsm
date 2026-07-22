@@ -1,4 +1,4 @@
-import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, addProfileToValueSet, countDistinctPinsForCanonical, EXTENSIONS, isDependsOnEntryForLeaf, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -13,6 +13,7 @@ import { getServerSession } from 'next-auth'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { AuthOptions } from '../auth/[...nextauth]'
 import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
+import { getGrouperLibrary, getGrouperValuesets } from '@/helpers/server/serverLibraryHelper'
 
 // --------------------------------------------
 // ------------ HELPER FUNCTIONS --------------
@@ -199,7 +200,7 @@ const getLeafFromTermServer = async ({
 // update condition and priority on program
 const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse<updateLeafResponse>): Promise<void> => {
   const body = await req.body as HandleVersionChange
-  const { vsCanonical, selectedVersion, grouperIds, programId, terminologyInfo, useContext } = body
+  const { vsCanonical, selectedVersion, grouperIds, programId, terminologyInfo, useContext, previousPinnedCanonical } = body
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
 
@@ -270,8 +271,15 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
       }))
 
     const program = (await FhirClient.getInstance().read({ resourceType: 'Library', id: programId })) as fhir4.Library
+
+    // If more than one grouper membership shares this bare canonical, only an exact pin match
+    // is safe. Otherwise, a bare url match is fine.
+    const grouperLibrary = await getGrouperLibrary(program)
+    const allGrouperValueSets = await getGrouperValuesets(grouperLibrary)
+    const isAmbiguous = countDistinctPinsForCanonical(allGrouperValueSets, vsCanonical) > 1
+
     program.relatedArtifact?.forEach((i) => {
-      if (i?.resource?.split('|')?.[0] === vsCanonical) {
+      if (isDependsOnEntryForLeaf({ entryResource: i?.resource, previousPinnedCanonical, vsCanonical, isAmbiguous })) {
         i.resource = selectedVersion === 'latest' ? vsCanonical : `${vsCanonical}|${selectedVersion}`
       }
     })

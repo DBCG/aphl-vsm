@@ -16,7 +16,9 @@ import {
   findUnversionedManifestRefs,
   filterToUnversioned,
   applyVersionUpdate,
-  applyAddManifestEntry
+  applyAddManifestEntry,
+  countDistinctPinsForCanonical,
+  isDependsOnEntryForLeaf
 } from './valueSetHelpers'
 import { uniq } from 'lodash'
 import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional';
@@ -439,6 +441,96 @@ describe('valueSetHelpers', () => {
     it('Should remove the version if latest version is specified', () => {
       const newValueSet = updateLeafVsVersion(testValueSet1, 'www.example.com/hello', 'latest')
       expect(newValueSet).toMatchObject(testValueSetUpdatedLatest)
+    })
+  })
+
+  describe('countDistinctPinsForCanonical', () => {
+    const bareUrl = 'http://example.com/ValueSet/foo'
+
+    it('returns 1 when only one grouper membership pins this canonical', () => {
+      const groupers = [
+        { resourceType: 'ValueSet', compose: { include: [{ valueSet: [`${bareUrl}|1.0`] }] } }
+      ] as fhir4.ValueSet[]
+
+      expect(countDistinctPinsForCanonical(groupers, bareUrl)).toBe(1)
+    })
+
+    it('returns 2 when a pinned and an unpinned grouper membership both reference this canonical', () => {
+      const groupers = [
+        { resourceType: 'ValueSet', compose: { include: [{ valueSet: [`${bareUrl}|1.0`] }] } },
+        { resourceType: 'ValueSet', compose: { include: [{ valueSet: [bareUrl] }] } }
+      ] as fhir4.ValueSet[]
+
+      expect(countDistinctPinsForCanonical(groupers, bareUrl)).toBe(2)
+    })
+
+    it('dedupes when the same pin appears in more than one grouper', () => {
+      const groupers = [
+        { resourceType: 'ValueSet', compose: { include: [{ valueSet: [`${bareUrl}|1.0`] }] } },
+        { resourceType: 'ValueSet', compose: { include: [{ valueSet: [`${bareUrl}|1.0`] }] } }
+      ] as fhir4.ValueSet[]
+
+      expect(countDistinctPinsForCanonical(groupers, bareUrl)).toBe(1)
+    })
+
+    it('ignores groupers that reference a different canonical entirely', () => {
+      const groupers = [
+        { resourceType: 'ValueSet', compose: { include: [{ valueSet: [`${bareUrl}|1.0`] }] } },
+        { resourceType: 'ValueSet', compose: { include: [{ valueSet: ['http://example.com/ValueSet/unrelated'] }] } }
+      ] as fhir4.ValueSet[]
+
+      expect(countDistinctPinsForCanonical(groupers, bareUrl)).toBe(1)
+    })
+  })
+
+  describe('isDependsOnEntryForLeaf', () => {
+    const bareUrl = 'http://example.com/ValueSet/foo'
+
+    it('retargets on an exact pin match, regardless of ambiguity', () => {
+      expect(
+        isDependsOnEntryForLeaf({
+          entryResource: `${bareUrl}|1.0`,
+          previousPinnedCanonical: `${bareUrl}|1.0`,
+          vsCanonical: bareUrl,
+          isAmbiguous: true
+        })
+      ).toBe(true)
+    })
+
+    it('falls back to a bare url match when unambiguous, even if the pin does not match', () => {
+      // simulates a fresh eRSD import: the depends-on entry's resource doesn't match the
+      // grouper's own (unpinned) compose.include pin
+      expect(
+        isDependsOnEntryForLeaf({
+          entryResource: `${bareUrl}|some-import-time-version`,
+          previousPinnedCanonical: bareUrl,
+          vsCanonical: bareUrl,
+          isAmbiguous: false
+        })
+      ).toBe(true)
+    })
+
+    it('does not fall back to a bare url match when ambiguous', () => {
+      // this is the case that used to steal a sibling grouper membership's depends-on entry
+      expect(
+        isDependsOnEntryForLeaf({
+          entryResource: `${bareUrl}|2.0`,
+          previousPinnedCanonical: bareUrl,
+          vsCanonical: bareUrl,
+          isAmbiguous: true
+        })
+      ).toBe(false)
+    })
+
+    it('does not match an entry for a completely different canonical', () => {
+      expect(
+        isDependsOnEntryForLeaf({
+          entryResource: 'http://example.com/ValueSet/unrelated',
+          previousPinnedCanonical: bareUrl,
+          vsCanonical: bareUrl,
+          isAmbiguous: false
+        })
+      ).toBe(false)
     })
   })
 

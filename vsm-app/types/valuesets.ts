@@ -45,4 +45,6 @@ export interface TableRow {
   valueSet: fhir4.ValueSet
   groups: GroupItem[]
   valueSetPinnedVersion?: string
+  // the canonical (url, or url|version) this row was resolved from distinguishes distinct versions for the same url
+  pinnedCanonical?: string
 }

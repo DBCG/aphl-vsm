@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
-import { fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
+import { fetchLeafValueSets, ValueSetWithPin } from '@/helpers/server/serverValueSetHelper'
 import Logger from '@/helpers/server/logger'
 import { getProgram, getGrouperLibrary, getGrouperValuesets } from '@/helpers/server/serverLibraryHelper'
 import { getLeafUrlsFromGrouper } from '@/helpers/valueSetHelpers'
@@ -45,8 +45,9 @@ const arrangeGroupInfoByValueSetCanonical = (allGrouperVSets: fhir4.ValueSet[]) 
 
     leafUrlsInGrouper?.forEach((leafUrl) => {
       if (!leafUrl) return
-      // arrange by unversioned grouper url
-      const [urlNoVersion, version] = leafUrl.split('|')
+      // arrange by the leaf's pinned canonical (url, or url|version when pinned) so a versioned
+      // and unversioned entry for the same url don't collide on grouper membership
+      const [, version] = leafUrl.split('|')
 
       const groupToAdd = {
         id: grouperVs?.id || 'Undefined',
@@ -55,10 +56,10 @@ const arrangeGroupInfoByValueSetCanonical = (allGrouperVSets: fhir4.ValueSet[]) 
         title: grouperVs.title || ''
       }
 
-      if (groupsByValueSetCanonical[urlNoVersion]) {
-        groupsByValueSetCanonical[urlNoVersion].push(groupToAdd)
+      if (groupsByValueSetCanonical[leafUrl]) {
+        groupsByValueSetCanonical[leafUrl].push(groupToAdd)
       } else {
-        groupsByValueSetCanonical[urlNoVersion] = [groupToAdd]
+        groupsByValueSetCanonical[leafUrl] = [groupToAdd]
       }
     })
   })
@@ -86,13 +87,14 @@ const vsInRequiredGroup = ({ groupsVsBelongsTo, groupIdsToFilterBy }: VsInReqGrp
 const formatValuesetData = (
   program: fhir4.Library,
   groupsByValueSetCanonical: GroupsByCanonical,
-  leafValueSets: fhir4.ValueSet[],
+  leafValueSets: ValueSetWithPin[],
   leafVersionsByCanonical: LeafVersionsByUrl
 ) => {
   const formattedVsets = leafValueSets
     .filter((x) => !!x)
     .map((valueSet, index) => {
-      const leafCanonical = valueSet.url!
+      // fall back to the bare url for callers that don't go through fetchLeafValueSets
+      const leafCanonical = valueSet.pinnedCanonical ?? valueSet.url!
       const groupsVsBelongsTo = groupsByValueSetCanonical[leafCanonical]
       const valueSetPinnedVersion = leafVersionsByCanonical[leafCanonical]
 
@@ -107,6 +109,7 @@ const formatValuesetData = (
         publisher: valueSet?.publisher || '[Undefined]',
         version: valueSet?.version || '[Undefined]',
         valueSetPinnedVersion,
+        pinnedCanonical: leafCanonical,
         valueSet: valueSet,
         groups: groupsVsBelongsTo
       }
@@ -167,14 +170,16 @@ export const getProgramDetailsValuesets = async ({
       titleToFind: findInVsTitle || '',
       whitelistFields: WHITELIST_VALUESET_FIELDS,
       provisionalOnly: false
-    })) as fhir4.ValueSet[]
+    })) as ValueSetWithPin[]
 
     const leafVersionsByCanonical = leafValueSetCanonicals
       ?.filter((canonical) => canonical?.includes('|'))
       ?.reduce((acc, can) => {
-        let [baseCanonical, version] = can.split('|')
-        return { ...acc, [baseCanonical]: version }
-      }, {})
+        // keyed by the full pinned canonical (url|version), not the bare url, so a versioned
+        // and unversioned entry for the same url each resolve to their own pinned version
+        const [, version] = can.split('|')
+        return { ...acc, [can]: version }
+      }, {} as LeafVersionsByUrl)
 
     const groupInfoByVsCanonical = arrangeGroupInfoByValueSetCanonical(grouperValueSets)
 
@@ -188,7 +193,7 @@ export const getProgramDetailsValuesets = async ({
           !!vs &&
           // vs canonical has version on it?
           vsInRequiredGroup({
-            groupsVsBelongsTo: groupInfoByVsCanonical[vs.url!],
+            groupsVsBelongsTo: groupInfoByVsCanonical[vs.pinnedCanonical ?? vs.url!],
             groupIdsToFilterBy: filterGroups
           })
       )
