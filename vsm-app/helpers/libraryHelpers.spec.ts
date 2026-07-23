@@ -12,7 +12,8 @@ import {
   getVSConditions,
   addVSConditions,
   updateGrouperLeafs,
-  deleteLeafsFromLibrary
+  deleteLeafsFromLibrary,
+  USHealthVSPriority
 } from './libraryHelpers'
 import { Condition } from './conditionHelpers'
 
@@ -232,6 +233,60 @@ describe('libraryHelpers', () => {
         const map = getVSPriority(testProgram)
         expect(map['http://cts.nlm.nih.gov/fhir/ValueSet/33333']).toBe('emergent')
         expect(map['http://cts.nlm.nih.gov/fhir/ValueSet/33333||1234']).toBeUndefined()
+      })
+
+      const buildPriorityRelatedArtifact = (resource: string, code: USHealthVSPriority): fhir4.RelatedArtifact => ({
+        type: 'depends-on',
+        resource,
+        extension: [
+          {
+            url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+            valueUsageContext: {
+              code: {
+                system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                code: 'priority'
+              },
+              valueCodeableConcept: {
+                coding: [
+                  {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                    code
+                  }
+                ],
+                text: code
+              }
+            }
+          }
+        ]
+      })
+
+      it('should keep a pinned and unpinned entry for the same bare url independent, while still exposing a bare url lookup', () => {
+        const bareUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/33333'
+        testProgram.relatedArtifact = [
+          buildPriorityRelatedArtifact(`${bareUrl}|1234`, 'emergent'),
+          buildPriorityRelatedArtifact(bareUrl, 'routine')
+        ]
+
+        const map = getVSPriority(testProgram)
+
+        // each pinned/unpinned entry resolves to its own priority via its exact canonical
+        expect(map[`${bareUrl}|1234`]).toBe('emergent')
+        expect(map[bareUrl]).toBe('routine')
+      })
+
+      it('should not let a pinned entrys bare url fallback clobber the unpinned entrys own value, regardless of processing order', () => {
+        const bareUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/33333'
+        // same fixture as above, but with the unpinned entry listed FIRST - the bare-url
+        // lookup must resolve the same way either way
+        testProgram.relatedArtifact = [
+          buildPriorityRelatedArtifact(bareUrl, 'routine'),
+          buildPriorityRelatedArtifact(`${bareUrl}|1234`, 'emergent')
+        ]
+
+        const map = getVSPriority(testProgram)
+
+        expect(map[`${bareUrl}|1234`]).toBe('emergent')
+        expect(map[bareUrl]).toBe('routine')
       })
     })
 
@@ -469,6 +524,50 @@ describe('libraryHelpers', () => {
       })
       it('Returns an empty object if there are no conditions in a program', () => {
         expect(getVSConditions(FIXTURE_PROGRAM_1)).toStrictEqual({})
+      })
+
+      const buildConditionRelatedArtifact = (resource: string, code: string, text: string): fhir4.RelatedArtifact => ({
+        type: 'depends-on',
+        resource,
+        extension: [
+          {
+            url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+            valueUsageContext: {
+              code: {
+                system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                code: 'focus'
+              },
+              valueCodeableConcept: {
+                coding: [{ system: 'http://snomed.info/sct', code }],
+                text
+              }
+            }
+          }
+        ]
+      })
+
+      it('keeps a pinned and unpinned entry for the same bare url independent, and aggregates them under a bare url lookup', () => {
+        const bareUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/99999'
+        const program = cloneDeep(FIXTURE_PROGRAM_1)
+        program.relatedArtifact = [
+          buildConditionRelatedArtifact(`${bareUrl}|1.0`, '111', 'Condition A'),
+          buildConditionRelatedArtifact(bareUrl, '222', 'Condition B')
+        ]
+
+        const map = getVSConditions(program)
+
+        // the pinned entry's exact canonical only sees its own condition
+        expect(map[`${bareUrl}|1.0`]).toStrictEqual([
+          { id: 'http://snomed.info/sct|111', valueCodeableConcept: { coding: [{ system: 'http://snomed.info/sct', code: '111' }], text: 'Condition A' } }
+        ])
+        // the unpinned entry's exact canonical (the bare url itself) sees only its own condition too
+        // BUT since it collides with the bare url aggregate key, it ends up merged with the pinned
+        // entry's condition there. this is the tradeoff for keeping a bare url lookup
+        // available for callers (e.g. code search) that can't distinguish by pinned version
+        expect(map[bareUrl]).toStrictEqual([
+          { id: 'http://snomed.info/sct|111', valueCodeableConcept: { coding: [{ system: 'http://snomed.info/sct', code: '111' }], text: 'Condition A' } },
+          { id: 'http://snomed.info/sct|222', valueCodeableConcept: { coding: [{ system: 'http://snomed.info/sct', code: '222' }], text: 'Condition B' } }
+        ])
       })
     })
     describe('addVsConditions', () => {
@@ -947,6 +1046,25 @@ const FIXTURE_PROGRAM_CONDITIONS_1 = {
 } as fhir4.Library
 
 const FIXTURE_PROGRAM_CONDITIONS_1_RESULT =     {
+  // pinned canonical key: what ProgramValueSetDetails uses to distinguish rows that
+  // share a bare url but were pinned to different versions
+  'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526': [
+    {
+      id: 'http://snomed.info/sct|49649001',
+      valueCodeableConcept: {
+        coding: [ { system: 'http://snomed.info/sct', code: '49649001' } ],
+        text: 'Infection caused by Acanthamoeba (disorder)'
+      }
+    },
+    {
+      id: 'http://snomed.info/sct|767146004',
+      valueCodeableConcept: {
+        coding: [ { system: 'http://snomed.info/sct', code: '767146004' } ],
+        text: 'Toxic effect of arsenic and/or arsenic compound'
+      }
+    }
+  ],
+  // bare url key: kept for callers (e.g. code search) that can't distinguish by version
   'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6': [
     {
       id: 'http://snomed.info/sct|49649001',

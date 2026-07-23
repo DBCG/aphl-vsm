@@ -3,6 +3,12 @@ import FhirKitClient, { ResourceType } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import dayjs from 'dayjs'
 import Logger from './logger'
+
+// a ValueSet resolved via fetchLeafValueSets, tagged with the (possibly version-pinned)
+// canonical string that was used to look it up - lets callers tell apart two rows for the
+// same ValueSet.url that were pinned to different versions
+export type ValueSetWithPin = fhir4.ValueSet & { pinnedCanonical?: string }
+
 interface FetchGrouperLib {
   client: FhirKitClient
   canonical: string
@@ -199,9 +205,12 @@ export const fetchLeafValueSets = async ({
   try {
     let valueSets
     valueSets = batchResults.entry
-      ?.map((e: any) => {
+      ?.map((e: any, i: number) => {
         const vsBundleEntry = e?.resource?.entry
+        // the canonical (possibly pinned to a version) that produced this entry.
+        const pinnedCanonical = leafValueSetCanonicals[i]
         if (vsBundleEntry) {
+          let resource
           if (vsBundleEntry?.length > 1) {
             // Find latest valueset version to return
             const latestEntry = vsBundleEntry.reduce((acc: fhir4.BundleEntry, cur: fhir4.BundleEntry) => {
@@ -209,12 +218,14 @@ export const fetchLeafValueSets = async ({
               const accDate = new Date((acc.resource as fhir4.ValueSet)?.version || 0)
               return dayjs(curDate).isAfter(accDate) ? cur : acc
             }, vsBundleEntry?.[0])
-            return [latestEntry.resource]
+            resource = latestEntry.resource
           } else if (vsBundleEntry?.length === 1) {
-            return [vsBundleEntry?.[0]?.resource]
+            resource = vsBundleEntry?.[0]?.resource
           } else {
             return
           }
+          if (!resource) return
+          return [{ ...resource, pinnedCanonical: pinnedCanonical } as ValueSetWithPin]
         }
       })
       ?.filter((x: any) => !!x) // filter out undefined

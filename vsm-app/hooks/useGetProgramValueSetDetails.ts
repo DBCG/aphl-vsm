@@ -33,6 +33,7 @@ export interface DataItem {
   version: string
   valueSet: fhir4.ValueSet
   valueSetPinnedVersion: string | undefined
+  pinnedCanonical?: string
   programStatus: fhir4.Library['status']
 }
 
@@ -123,7 +124,7 @@ const useGetProgramValueSetDetails = ({
       if (!vs.valueSet.url) {
         return false
       }
-      const currentPriority = valueSetPriorityMap[vs.valueSet.url]
+      const currentPriority = valueSetPriorityMap[vs.pinnedCanonical ?? vs.valueSet.url]
       return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
     })
     resultData.data = filteredData
@@ -135,7 +136,7 @@ const useGetProgramValueSetDetails = ({
       if (!vs.valueSet.url) {
         return false
       }
-      const currentConditions = conditionsMap[vs.valueSet.url]?.map((i) => i?.id)
+      const currentConditions = conditionsMap[vs.pinnedCanonical ?? vs.valueSet.url]?.map((i) => i?.id)
       // Test for intersection of either array
       return currentConditions?.filter((value) => activeConditionsMap.includes(value)).length > 0
     })

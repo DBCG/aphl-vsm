@@ -235,6 +235,9 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonica
 
 const getVSPriority = (library: fhir4.Library) => {
   const vsPriorityMap: Record<string, USHealthVSPriority> = {}
+  // bare urls that have their own depends-on entry (i.e. keyed by the bare url itself, not
+  // a pinned sibling). The fallback below must never overwrite its value,regardless of which entry is processed first
+  const bareUrlsWithOwnPriorityEntry = new Set<string>()
 
   library?.relatedArtifact?.forEach((ra) => {
     if (ra?.type !== 'depends-on' || !ra?.extension?.length) return
@@ -249,8 +252,9 @@ const getVSPriority = (library: fhir4.Library) => {
 
     if (!priorityExt) return
 
-    // extract values safely
-    const vsUrl = ra.resource?.split('|')?.[0] as string | undefined
+    // extract values safely - keep the full pinned canonical so a
+    // versioned and unversioned depends-on entry for the same url don't collide
+    const vsUrl = ra.resource
     const priorityCode = (priorityExt as any)?.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.code as
       | string
       | undefined
@@ -263,6 +267,16 @@ const getVSPriority = (library: fhir4.Library) => {
     }
 
     vsPriorityMap[vsUrl] = priorityCode as USHealthVSPriority
+
+    const [bareUrl] = vsUrl.split('|')
+    if (bareUrl === vsUrl) {
+      bareUrlsWithOwnPriorityEntry.add(bareUrl)
+    } else if (!bareUrlsWithOwnPriorityEntry.has(bareUrl)) {
+      // bare url fallback for callers that can't identify by pinned version - skipped once
+      // this bare url has its own entry, so that value can't be overwritten no matter which
+      // order relatedArtifact entries are processed in
+      vsPriorityMap[bareUrl] = priorityCode as USHealthVSPriority
+    }
   })
 
   return vsPriorityMap
@@ -292,7 +306,9 @@ const getVSConditions = (program: fhir4.Library) => {
     )
 
     if (artifact?.type === 'depends-on' && conditionExtensions?.length) {
-      const vsUrl = artifact.resource?.split('|')?.[0] as string
+      // keep the full pinned canonical so a versioned and unversioned
+      // depends-on entry for the same url dont collide
+      const vsUrl = artifact.resource as string
 
       const arrangedConditions = conditionExtensions
         .map((ext) => {
@@ -319,6 +335,16 @@ const getVSConditions = (program: fhir4.Library) => {
           vsConditions[vsUrl] = arrangedConditions
         } else {
           vsConditions[vsUrl] = vsConditions[vsUrl].concat(arrangedConditions)
+        }
+
+        // also keep a bare url entry for callers that can't identify by pinned version
+        const [bareUrl] = vsUrl.split('|')
+        if (bareUrl !== vsUrl) {
+          if (!vsConditions[bareUrl]) {
+            vsConditions[bareUrl] = arrangedConditions
+          } else {
+            vsConditions[bareUrl] = vsConditions[bareUrl].concat(arrangedConditions)
+          }
         }
       }
     }

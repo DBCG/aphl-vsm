@@ -77,6 +77,8 @@ export interface HandleVersionChange {
   selectedVsId: string
   selectedVersion: string
   vsCanonical: string
+  // lets the server retarget only the depends-on entry for this specific grouper membership
+  previousPinnedCanonical: string
   grouperIds: string[]
   terminologyInfo: TerminologyResult
 }
@@ -204,7 +206,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         body
       }).then((res) => res.json())
 
-      const oldConditions = conditionsMap[vsUrl]
+      const oldConditions = conditionsMap[row?.pinnedCanonical ?? vsUrl]
       const conditionAction = oldConditions?.length > conditions?.length ? 'removed' : `added ${conditions?.[conditions.length - 1]?.label}`
       toast.success(`Successfully ${conditionAction} condition`)
       setCurrentProgram(updatedLibrary)
@@ -324,6 +326,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       selectedVersion: e?.value as string,
       useContext: row?.valueSet?.useContext || [],
       vsCanonical: row?.valueSet?.url as string,
+      previousPinnedCanonical: row?.pinnedCanonical ?? (row?.valueSet?.url as string),
       programId: currentProgram?.id as string,
       grouperIds,
       terminologyInfo
@@ -454,7 +457,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         allowOverflow: true,
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          const priorityKey = row?.valueSet?.url ?? ''
+          const priorityKey = row?.pinnedCanonical ?? row?.valueSet?.url ?? ''
           const currentPriority = valueSetPriorityMap[priorityKey] as string
           const currentPriorityValue = currentPriority
             ? priorityLevelOptions.find((i) => i.id === currentPriority)
@@ -613,7 +616,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         wrap: true,
         minWidth: '210px',
         cell: (row: TableRow, index: number) => {
-          const vsConditions = conditionsMap[row?.valueSet?.url!] || []
+          const vsConditions = conditionsMap[row?.pinnedCanonical ?? row?.valueSet?.url!] || []
           const selectedOptions = vsConditions
             ?.map((i) => {
               const system = i?.valueCodeableConcept?.coding?.[0]?.system
