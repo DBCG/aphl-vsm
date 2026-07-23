@@ -21,6 +21,11 @@ let state = {} as Jobs
 
 let uiListener: Subject<any> | null = null
 
+// Tracks jobIds that already have an active uiListener subscription, so repeated
+// listenForJob calls for the same job don't stack up duplicate subscriptions that each fire their
+// own toast for the same completion event.
+const activeListenerJobIds = new Set<string>()
+
 const notifyUiListener = (nextState: Jobs) => {
   subject.next(nextState)
   if (uiListener !== null) {
@@ -45,6 +50,12 @@ const NotificationStore = {
   listenForJob: (targetedJobId: string, callback: Function) => {
     console.log(`[NotificationStore] listenForJob called for jobId: ${targetedJobId}`)
 
+    if (activeListenerJobIds.has(targetedJobId)) {
+      console.log(`[NotificationStore] Listener already active for job: ${targetedJobId}, skipping duplicate`)
+      return () => {}
+    }
+    activeListenerJobIds.add(targetedJobId)
+
     // Create a new listener if it doesn't exist
     if (!uiListener) {
       console.log('[NotificationStore] Creating new uiListener Subject')
@@ -66,6 +77,7 @@ const NotificationStore = {
     return () => {
       console.log(`[NotificationStore] Cleaning up listener for job: ${targetedJobId}`)
       subscription.unsubscribe()
+      activeListenerJobIds.delete(targetedJobId)
     }
   },
   addJob: async ({ jobId, jobType, metadata, onSuccess, onFailure, updateStatus }: AddJobParams) => {

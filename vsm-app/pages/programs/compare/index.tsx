@@ -3,7 +3,7 @@ import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { CircularProgress, Drawer, IconButton, Tooltip } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { useRouter } from 'next/router'
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useMemo, useRef, useState } from 'react'
 import Select from 'react-select'
 import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
@@ -234,6 +234,11 @@ interface ChangelogItem {
 
 type ChangelogItemMap = Record<string, ChangelogItem>
 
+// Used to guard against two concurrent loadDiffResults calls for the same
+// base/target pair both kicking off a changelog request before either has a job id to
+// de-dupe against.
+const inFlightChangelogs = new Set<string>()
+
 const ProgramCompare = () => {
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState<boolean>(false)
@@ -246,6 +251,9 @@ const ProgramCompare = () => {
 
   // is it just diff viewer, or also download
   const [downloadLoading, setDownloadLoading] = useState(false)
+
+  // cleanup function for the most recent NotificationStore.listenForJob subscription
+  const listenForJobCleanupRef = useRef<(() => void) | null>(null)
 
   // @ts-ignore
   const allPrograms = useGetPrograms([]) || []
@@ -292,16 +300,9 @@ const ProgramCompare = () => {
           return json // still in progress
         }
 
-        const diffItemToAdd = {
-          [base.value]: {
-            [target.value]: json
-          }
-        }
-
-        const existingDiffData = rawDiffData || {}
-
-        const updatedDiffData = Object.assign({}, existingDiffData, diffItemToAdd)
-        setRawDiffData(updatedDiffData)
+        // Note: `json` here is the raw Bull Job envelope, not the parsed changelog data
+        // (that only exists once JSON.parse(json.returnvalue) runs in setDiffResults).
+        // Don't write it into rawDiffData - that's reserved for the actual parsed changelog.
         return json
       }
     } catch (e) {
@@ -318,7 +319,12 @@ const ProgramCompare = () => {
     const existingData = rawDiffData?.[baseProgram.value]?.[targetProgram.value]
 
     if (existingData) {
-      // just use existing data if it's there
+      // use existing data if it's there, but still need to build the viewer's
+      // formatted data since it may have been cleared by a dropdown change
+      // @ts-ignore
+      const formattedChangelog = createTableData(existingData)
+      // @ts-ignore
+      setDiffViewerFormattedData(formattedChangelog)
       setIsLoadingDiff(false)
       toast.success('Using existing difference data')
       
@@ -369,6 +375,13 @@ const ProgramCompare = () => {
 
   const loadDiffResults = async (base: any, target: any) => {
     if (base?.value && target?.value) {
+      const pairKey = `${base.value}:${target.value}`
+      if (inFlightChangelogs.has(pairKey)) {
+        // Already generating/listening for this exact pair
+        return
+      }
+      inFlightChangelogs.add(pairKey)
+
       const diffResponse = await getRawDiffData({ base, target })
       if (diffResponse?.error) {
         toast.error(
@@ -376,12 +389,13 @@ const ProgramCompare = () => {
         )
         setDownloadLoading(false)
         setIsLoadingDiff(false)
+        inFlightChangelogs.delete(pairKey)
         return
       } else if (diffResponse != null && diffResponse.finishedOn == null) {
         // if create-changelog is still in progress...
         toast.info('Difference data is being generated.')
 
-        NotificationStore.listenForJob(diffResponse.id, async (job: JobData) => {
+        listenForJobCleanupRef.current = NotificationStore.listenForJob(diffResponse.id, async (job: JobData) => {
           if (job?.status === JOB_STATUS.COMPLETED) {
             toast.success('Difference generated successfully')
             const diffResponse = await getRawDiffData({ base, target }) // get the data again
@@ -394,11 +408,13 @@ const ProgramCompare = () => {
             setIsLoadingDiff(false)
             setIsError(true)
           }
+          inFlightChangelogs.delete(pairKey)
         })
         return
       }
 
       setDiffResults(base, target, diffResponse)
+      inFlightChangelogs.delete(pairKey)
     }
   }
 
@@ -434,6 +450,10 @@ const ProgramCompare = () => {
       setBaseProgram(base!)
       setTargetProgram(target!)
       loadDiffResults(base, target)
+    }
+    return () => {
+      listenForJobCleanupRef.current?.()
+      listenForJobCleanupRef.current = null
     }
   }, [formattedProgramOptions])
 

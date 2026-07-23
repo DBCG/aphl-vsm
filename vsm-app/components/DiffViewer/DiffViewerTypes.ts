@@ -313,7 +313,7 @@ interface GrouperVsPage {
       value: string | undefined
       operation?: OldChangeOperation
     }
-    leafValuesets: LeafVsItemOld[]
+    leafValueSets: LeafVsItemOld[]
     codes: FlatCodeOld[]
   }
   newData?: {
@@ -338,7 +338,7 @@ interface GrouperVsPage {
       value: string | undefined
       operation?: NewChangeOperation
     }
-    leafValuesets: LeafVsItemNew[] 
+    leafValueSets: LeafVsItemNew[]
     codes: FlatCodeNew[]
   }
 }

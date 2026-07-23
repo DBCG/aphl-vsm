@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
+import { fetchByCanonical } from '@/helpers/server/serverValueSetHelper'
 import { startCase, times, uniq } from 'lodash'
 import { Agent, fetch as f } from 'undici'
 interface CollectedChange extends ChangeValue {
@@ -19,7 +20,7 @@ type ChangeValue = {
   display: string
   version: string
   system: string
-  code: string
+  codeValue: string
   memberOid: string
 }
 
@@ -97,7 +98,7 @@ const autosortTable = (table: ExcelJS.Table, tableRows: ExcelJS.Rows, sheet: Exc
 }
 
 const changeLogDiffOperation = async (sourceId: string, targetId: string, input: fhir4.Parameters) => {
-  const changeJson = await f(`${FhirClient.getInstance().baseUrl}/$create-changelog`, {
+  const changeJson = await f(`${FhirClient.getInstance().baseUrl}/Library/$create-changelog`, {
     body: JSON.stringify(input),
     method: 'POST',
     dispatcher: new Agent({
@@ -182,23 +183,23 @@ const generateReadMeSheet = (
   const currentVersionHeader = readmeSheet.addRow(['Current Version'])
   currentVersionHeader.font = { bold: true }
   const currentVersion = readmeSheet.addRows([
+    ['Name', targetGrouperLibrary.title],
+    ['Purpose', targetGrouperLibrary?.purpose],
+    ['RCTC OID', getOid(targetGrouperLibrary)],
+    ['RCTC Definition Version', targetGrouperLibrary?.version],
+    ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
+    ['RCTC Release Label', targetGrouperLibrary?.version]
+  ])
+  readmeSheet.addRow([]) // Add new line
+  const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
+  previousVersionHeader.font = { bold: true }
+  const previousVersion = readmeSheet.addRows([
     ['Name', sourceGrouperLibrary.title],
     ['Purpose', sourceGrouperLibrary?.purpose],
     ['RCTC OID', getOid(sourceGrouperLibrary)],
     ['RCTC Definition Version', sourceGrouperLibrary?.version],
     ['RCTC Definition Effective Start Date', sourceGrouperLibrary?.effectivePeriod?.start],
     ['RCTC Release Label', sourceGrouperLibrary?.version]
-  ])
-  readmeSheet.addRow([]) // Add new line
-  const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
-  previousVersionHeader.font = { bold: true }
-  const previousVersion = readmeSheet.addRows([
-    ['Name', targetGrouperLibrary.title],
-    ['Purpose', targetGrouperLibrary?.purpose],
-    ['RCTC OID', getOid(sourceGrouperLibrary)],
-    ['RCTC Definition Version', targetGrouperLibrary?.version],
-    ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
-    ['RCTC Release Label', targetGrouperLibrary?.version]
   ])
   const cellsToStyle = [currentVersion, previousVersion]
   cellsToStyle.forEach((rows) => {
@@ -308,18 +309,22 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
   await Promise.all(
     groupingValueSetsChangeLogs.map(async (page: any) => {
       const currentId = page.newData?.id?.value || page.oldData?.id?.value // use new ID unless it's a deleted grouper
-      const grouperVs = (await FhirClient.getInstance().read({
+      const currentVsVersion = page.newData?.version?.value || page.oldData?.version?.value
+      // page.newData/oldData.id.value is not a real server-assigned resource id - look it up by canonical url/version instead
+      const grouperVsSearch = await fetchByCanonical({
+        client: FhirClient.getInstance(),
         resourceType: 'ValueSet',
-        id: currentId
-      })) as fhir4.ValueSet
+        canonical: currentVsVersion ? `${page.url}|${currentVsVersion}` : page.url
+      })
+      const grouperVs = grouperVsSearch?.entry?.[0]?.resource as fhir4.ValueSet
       const groupingValueSetSheet: ExcelJS.Worksheet = workbook.addWorksheet(grouperVs?.name || grouperVs?.title)
       groupingValueSetSheet.getColumn('A').width = 30
       groupingValueSetSheet.getColumn('B').width = 60
       const vsInfo = [
-        ['Value Set Name', page.title],
+        ['Value Set Name', page.newData?.title?.value],
         ['OID', grouperVs?.identifier?.[0]?.value?.replace('urn:oid:', '')],
         ['Type', 'Grouping'],
-        ['Definition Version', grouperVs.status],
+        ['Definition Version', grouperVs?.status],
         ['Steward', getVsSteward(grouperVs)],
         ['Author', getVsAuthor(grouperVs)],
         ['Publisher', grouperVs.publisher],
@@ -368,8 +373,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           })
         })
       }
-      const oldToMerge = collector(page.oldData?.leafValuesets)
-      const newToMerge = collector(page.newData?.leafValuesets)
+      const oldToMerge = collector(page.oldData?.leafValueSets)
+      const newToMerge = collector(page.newData?.leafValueSets)
       const leafValueSets = mergeChanges(oldToMerge, newToMerge)
       fillGroupingListTableRows(leafValueSets)
 
@@ -405,7 +410,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       const fillCodeRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
-            const { display: descriptor, memberOid, version, code, codeSystemName, parentValueSetName } = rowValue
+            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName, parentValueSetName } = rowValue
             const status = startCase(grouperVs?.status || '')
             const remapInfo = status === 'Active' ? 'No' : 'Yes'
             codeRows.push([parentValueSetName, memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])

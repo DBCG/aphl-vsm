@@ -40,7 +40,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   const sourceGrouperLibrary = (await getGrouperLibrary(sourceLibrary)) as fhir4.Library
   const targetGrouperLibrary = (await getGrouperLibrary(targetLibrary)) as fhir4.Library
   const grouperLibDiffJson = changeJson.pages.filter(
-    (page: any) => page.resourceType === 'Library' && page.oldData?.id?.operation?.newValue === targetGrouperLibrary.id
+    (page: any) => page.resourceType === 'Library' && page.url === targetGrouperLibrary.url
   )?.[0]
 
   const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.resourceType === 'ValueSet')

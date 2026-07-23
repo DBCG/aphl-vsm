@@ -16,8 +16,17 @@ type SubscribeProps = {
   onFailure?: any
 }
 
+// Tracks jobIds that already have an active polling loop, so repeated subscribe() calls
+// for the same job don't spin up duplicate pollers that each independently
+// fire their own completion/failure toast.
+const activePollingJobIds = new Set<string>()
+
 const subscribe = ({ jobIds, onSuccess = defaultOnSuccess, setMetaData = () => {}, onFailure = () => {} }: SubscribeProps) => {
-  if (!jobIds.length) return
+  const idsToSubscribe = jobIds.filter((jobId) => !activePollingJobIds.has(jobId))
+  if (!idsToSubscribe.length) return
+  idsToSubscribe.forEach((jobId) => activePollingJobIds.add(jobId))
+  const stopTracking = () => idsToSubscribe.forEach((jobId) => activePollingJobIds.delete(jobId))
+
   // Create an observable for polling
   const polling$ = timer(0, 5000).pipe(
     switchMap(() =>
@@ -26,7 +35,7 @@ const subscribe = ({ jobIds, onSuccess = defaultOnSuccess, setMetaData = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(jobIds)
+        body: JSON.stringify(idsToSubscribe)
       })
         .then(async (response) => {
           const res = await response.json()
@@ -46,6 +55,7 @@ const subscribe = ({ jobIds, onSuccess = defaultOnSuccess, setMetaData = () => {
     catchError((error) => {
       console.error('Something went wrong', error)
       onFailure(error)
+      stopTracking()
       return of(null) // Complete the observable if there's an error
     })
   )
@@ -57,7 +67,7 @@ const subscribe = ({ jobIds, onSuccess = defaultOnSuccess, setMetaData = () => {
       return false
     } else if (status === JOB_STATUS.COMPLETED) {
       onSuccess()
-      NotificationStore.completedJobs(jobIds) // completedJobs takes an array of ids
+      NotificationStore.completedJobs(idsToSubscribe) // completedJobs takes an array of ids
       return false
     } else {
       // Job is still in progress exit out
@@ -78,6 +88,7 @@ const subscribe = ({ jobIds, onSuccess = defaultOnSuccess, setMetaData = () => {
       const shouldContinue = pollingDecision(jobId, jobDetails?.status, jobDetails?.error! || '')
       if (!shouldContinue) {
         subscription.unsubscribe() // Stop polling
+        stopTracking()
       }
     } else if (currentJobIds.length > 1) {
       // Handle case of polling multiple jobs
@@ -107,6 +118,7 @@ const subscribe = ({ jobIds, onSuccess = defaultOnSuccess, setMetaData = () => {
         toast.success('Job failed')
       }
       subscription.unsubscribe() // Stop polling
+      stopTracking()
       if (completedJobs.length + failedJobs.length !== currentJobIds.length) {
         NotificationStore.resubscribeJobs() // Resubscribe to all in progress jobs
       }
