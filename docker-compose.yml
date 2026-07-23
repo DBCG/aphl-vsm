@@ -10,7 +10,7 @@ services:
     ports:
     - 6379:6379
   hapi-fhir-jpa-server-starter:
-    image: hapiproject/hapi:v8.6.0-1
+    image: hapiproject/hapi:v8.10.0-3
     environment:
     - redis.host=redis
     - redis.port=6379
