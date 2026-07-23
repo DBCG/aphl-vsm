@@ -44,9 +44,8 @@ const addTerminologyEndpointToParameters = async ({parameters, address, userId }
   const updatedParameters = structuredClone(parameters)
   const endpointWithVsacCredentials: fhir4.Endpoint = {
     resourceType: 'Endpoint',
-    extension: [
-      { url: 'vsacUsername', valueString: vsCreds.username },
-      { url: 'apiKey', valueString: vsCreds.password }
+    header: [
+        "Authorization: Basic " + Buffer.from("apikey:" + vsCreds.password).toString("base64"),
     ],
     address: address || process.env.NEXT_PUBLIC_VSAC_BASE_URL || '',
     connectionType: { system: 'http://hl7.org/fhir/ValueSet/endpoint-connection-type', code: 'hl7-fhir-rest' },
