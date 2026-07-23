@@ -6,10 +6,11 @@ import { useSession } from 'next-auth/react'
 import { allowEditing, allowRelease, allowWithdraw, allowRetire, allowDelete, can, VSMSession } from '@/helpers/rolesHelper'
 import { StatusChip } from '@/components/data-display/Chips'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
-import { getVSPManifestVersions } from '@/helpers/valueSetHelpers'
+import { getVSPManifestVersions, findUnversionedManifestRefs } from '@/helpers/valueSetHelpers'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { ExportPackageDetailsModal } from '@/components/modals/PackageDetailsModal'
+import ConfirmUnversionedRefsModal from '@/components/modals/ConfirmUnversionedRefsModal'
 import { toast } from 'react-toastify'
 import { debounce } from 'lodash'
 import styled from 'styled-components'
@@ -63,6 +64,7 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
   // Release state
   const [releaseLoading, setReleaseLoading] = useState(false)
   const [releaseModalOpen, setReleaseModalOpen] = useState(false)
+  const [releaseUnversionedConfirmOpen, setReleaseUnversionedConfirmOpen] = useState(false)
 
   // Withdraw state
   const [withdrawLoading, setWithdrawLoading] = useState(false)
@@ -104,6 +106,18 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
 
   const { id = '', status, experimental } = currentVSP
   const manifestData = getVSPManifestVersions(currentVSP)
+  const unversionedReleaseRefs = findUnversionedManifestRefs(currentVSP)
+  const hasUnversionedReleaseRefs =
+    unversionedReleaseRefs.codeSystems.length + unversionedReleaseRefs.valueSets.length > 0
+
+  const startRelease = () => {
+    setError({})
+    if (hasUnversionedReleaseRefs) {
+      setReleaseUnversionedConfirmOpen(true)
+    } else {
+      setReleaseModalOpen(true)
+    }
+  }
 
   // Get IG reference from relatedArtifact
   const igReference = currentVSP.relatedArtifact?.find((ra) => ra.type === 'composed-of')?.resource || 'N/A'
@@ -253,6 +267,17 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
   return (
     <Col>
       {/* Modals */}
+      <ConfirmUnversionedRefsModal
+        isOpen={releaseUnversionedConfirmOpen}
+        action="release"
+        codeSystems={unversionedReleaseRefs.codeSystems}
+        valueSets={unversionedReleaseRefs.valueSets}
+        onCancel={() => setReleaseUnversionedConfirmOpen(false)}
+        onConfirm={() => {
+          setReleaseUnversionedConfirmOpen(false)
+          setReleaseModalOpen(true)
+        }}
+      />
       {releaseModalOpen && (
         <LoadingModal
           actionType="release"
@@ -358,10 +383,7 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
                 <Button
                   variant="contained"
                   disabled={currentVSP.status !== 'draft'}
-                  onClick={() => {
-                    setError({})
-                    setReleaseModalOpen(true)
-                  }}
+                  onClick={startRelease}
                   style={{
                     backgroundColor: currentVSP.status === 'draft' ? 'var(--theme-400)' : undefined
                   }}
@@ -452,6 +474,7 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
             ...manifestData.valueSets
           }}
           resourceType="vsp"
+          unversionedSeverity="info"
         />
       </ManifestContainer>
     </Col>

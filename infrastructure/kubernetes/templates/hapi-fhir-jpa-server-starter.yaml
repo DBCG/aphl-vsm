@@ -117,7 +117,7 @@ spec:
             - containerPort: 8080
               protocol: TCP
       nodeSelector:
-        kubernetes.io/memory-intensive: "true"
+        aphl/memory-intensive: "true"
       tolerations:
       - key: "memory-intensive"
         operator: "Equal"
@@ -128,7 +128,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - key: "kubernetes.io/memory-intensive"
+              - key: "aphl/memory-intensive"
                 operator: In
                 values:
                 - "true"

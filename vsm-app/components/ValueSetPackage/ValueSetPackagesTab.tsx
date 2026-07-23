@@ -21,6 +21,8 @@ import { toast } from 'react-toastify'
 import { CreateVSPModal } from '@/components/modals/CreateVSPModal'
 import { CreateVSPRequest } from '@/types/vspTypes'
 import { apiFetch } from '@/utils'
+import { findUnversionedManifestRefs } from '@/helpers/valueSetHelpers'
+import ConfirmUnversionedRefsModal from '@/components/modals/ConfirmUnversionedRefsModal'
 
 const Col = styled.div`
   display: flex;
@@ -70,7 +72,7 @@ const generateBlockedReason = (vsp: fhir4.Library, actionType: 'release' | 'with
 interface ExpandableRowProps {
   data: fhir4.Library
   session: VSMSession
-  handleClickRelease: (vspId: string | undefined) => void
+  handleClickRelease: (row: fhir4.Library) => void
   handleClickWithdraw: (vspId: string | undefined) => void
   handleClickRetire: (vspId: string | undefined) => void
   handleClickDelete: (vspId: string | undefined) => void
@@ -116,7 +118,7 @@ const ExpandableRowComponent = ({
                 disabled={row.status !== 'draft'}
                 onClick={() => {
                   setError({})
-                  handleClickRelease(row?.id)
+                  handleClickRelease(row)
                 }}
               >
                 Release
@@ -214,6 +216,8 @@ const ValueSetPackagesTab: NextPage = () => {
   const [releaseLoading, setReleaseLoading] = useState(false)
   const [releaseModalOpen, setReleaseModalOpen] = useState(false)
   const [vspIdToRelease, setVspIdToRelease] = useState('')
+  const [releaseUnversionedConfirmOpen, setReleaseUnversionedConfirmOpen] = useState(false)
+  const [releaseUnversionedRefs, setReleaseUnversionedRefs] = useState<{ codeSystems: string[]; valueSets: string[] }>({ codeSystems: [], valueSets: [] })
 
   // retire state
   const [retireLoading, setRetireLoading] = useState(false)
@@ -320,10 +324,16 @@ const ValueSetPackagesTab: NextPage = () => {
 
   const handlePageChange = (newPage: number) => setPagination({ ...pagination, page: newPage })
 
-  const handleClickRelease = (vspId: string | undefined) => {
-    if (!vspId) return
-    setVspIdToRelease(vspId)
-    setReleaseModalOpen(true)
+  const handleClickRelease = (row: fhir4.Library) => {
+    if (!row?.id) return
+    setVspIdToRelease(row.id)
+    const refs = findUnversionedManifestRefs(row)
+    if (refs.codeSystems.length + refs.valueSets.length > 0) {
+      setReleaseUnversionedRefs(refs)
+      setReleaseUnversionedConfirmOpen(true)
+    } else {
+      setReleaseModalOpen(true)
+    }
   }
 
   const handleClickWithdraw = (vspId: string | undefined) => {
@@ -637,6 +647,20 @@ const ValueSetPackagesTab: NextPage = () => {
 
   return (
     <Col>
+      <ConfirmUnversionedRefsModal
+        isOpen={releaseUnversionedConfirmOpen}
+        action="release"
+        codeSystems={releaseUnversionedRefs.codeSystems}
+        valueSets={releaseUnversionedRefs.valueSets}
+        onCancel={() => {
+          setReleaseUnversionedConfirmOpen(false)
+          setVspIdToRelease('')
+        }}
+        onConfirm={() => {
+          setReleaseUnversionedConfirmOpen(false)
+          setReleaseModalOpen(true)
+        }}
+      />
       {releaseModalOpen && (
         <LoadingModal
           actionType="release"

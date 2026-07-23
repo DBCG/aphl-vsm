@@ -88,6 +88,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       steward,
       title,
       codesBySystemToAdd,
+      codesBySystemToRemove,
       grouperIds,
       programId,
       updatedConditions,
@@ -96,18 +97,19 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     } = req.body
     const userId = session?.user.id
     let codeSystemToEdit
-    const systemUrls = Object.keys(codesBySystemToAdd)
+    const systemUrls = Object.keys(codesBySystemToAdd ?? {})
 
     const resourcesToSaveFirst = [] as BuilderItem[]
     const resourcesToSaveLast = [] as BuilderItem[]
 
     for (const systemUrl of systemUrls) {
-      // if provisional code system already exists, update the codesystem with any new items
+      // if provisional code system already exists, update the codesystem with any new items.
+      // provisional code systems are indexed via provisional-cs-by-base-url. Use this to prevent duplicate creation.
       const existingCS = await FhirClient.getInstance().search({
         resourceType: 'CodeSystem',
         searchParams: {
           version: 'PROVISIONAL',
-          system: systemUrl
+          'provisional-cs-by-base-url': systemUrl
         }
       })
 
@@ -152,7 +154,9 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       if (codesBySystemToAdd) {
         provisionalLeaf = addOrRemoveVsCodes(provisionalLeaf, codesBySystemToAdd, 'add')
       }
-      // TODO update leaf as necessary
+      if (codesBySystemToRemove) {
+        provisionalLeaf = addOrRemoveVsCodes(provisionalLeaf, codesBySystemToRemove, 'remove')
+      }
     } else {
       // first, create the value set
       provisionalLeaf = generateProvisionalVs({

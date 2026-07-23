@@ -1,6 +1,6 @@
 {
   "name": "vsm-app",
-  "version": "1.0.0-beta.12",
+  "version": "1.0.0-beta.13",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
@@ -12,6 +12,17 @@
   },
   "resolutions": {
     "resolve": "^1.22.8"
+  },
+  "overrides": {
+    "resolve": "^1.22.8",
+    "postcss": "^8.5.10",
+    "sharp": "^0.35.0",
+    "bull": {
+      "uuid": "^11.1.1"
+    },
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   },
   "dependencies": {
     "@emotion/react": "11.11.1",

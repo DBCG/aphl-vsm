@@ -1,6 +1,10 @@
 data "aws_caller_identity" "current" {}
 data "aws_availability_zones" "available" {}
 
+data "aws_security_group" "eks_default" {
+  id = "sg-098826804e2654a54"
+}
+
 
 ################################################################################
 # EKS Module
@@ -31,7 +35,7 @@ module "eks" {
       most_recent = true
     }
     vpc-cni = {
-      most_recent              = true
+      addon_version            = "v1.20.5-eksbuild.1"
       service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
       configuration_values = jsonencode({
         env = {
@@ -43,41 +47,76 @@ module "eks" {
     }
   }
 
-  vpc_id                   = module.vpc.vpc_id
-  subnet_ids               = module.vpc.private_subnets
-  control_plane_subnet_ids = module.vpc.intra_subnets
+  vpc_id                                = module.vpc.vpc_id
+  subnet_ids                            = module.vpc.private_subnets
+  control_plane_subnet_ids              = module.vpc.intra_subnets
+  cluster_additional_security_group_ids = [data.aws_security_group.eks_default.id]
 
-  manage_aws_auth_configmap = true
-  create_aws_auth_configmap = true
-  aws_auth_users = [
-    {
-      userarn  = "arn:aws:iam::912275679263:user/travis-ci"
-      username = "travis-ci"
-      groups   = ["system:masters"]
-    }
-  ]
-
-  eks_managed_node_group_defaults = {
-    ami_type       = "AL2_x86_64"
-    instance_types = ["t3.medium"]
-
-    # We are using the IRSA created below for permissions
-    # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster)
-    # and then turn this off after the cluster/node group is created. Without this initial policy,
-    # the VPC CNI fails to assign IPs and nodes cannot join the cluster
-    # See https://github.com/aws/containers-roadmap/issues/1666 for more context
-    iam_role_attach_cni_policy = true
+  create_kms_key = false
+  cluster_encryption_config = {
+    provider_key_arn = "arn:aws:kms:us-east-1:912275679263:key/9c8ef74b-24fd-4fb3-9e14-788589908d32"
+    resources        = ["secrets"]
   }
 
- eks_managed_node_groups = {
-    blue = {}
-    green = {
-      min_size     = 1
-      max_size     = 4
-      desired_size = 1
+  manage_aws_auth_configmap = false
+  create_aws_auth_configmap = false
 
-      instance_types = ["t3.medium"]
-      capacity_type  = "SPOT"
+  eks_managed_node_group_defaults = {
+    ami_type       = "AL2023_x86_64_STANDARD"
+    instance_types = ["t3.large"]
+
+    iam_role_attach_cni_policy = true
+    use_custom_launch_template = false
+  }
+
+  eks_managed_node_groups = {
+    blue = {
+      name            = "aphl-eks-blue"
+      use_name_prefix = false
+
+      subnet_ids = [
+        "subnet-045847291edbf8ac4",
+        "subnet-09aa2ce46e33c022e",
+        "subnet-0ae7058268391a444",
+      ]
+
+      min_size     = 2
+      max_size     = 2
+      desired_size = 2
+
+      capacity_type = "SPOT"
+      disk_size     = 20
+
+      labels = {
+        "aphl/memory-intensive" = "true"
+      }
+
+      create_iam_role = false
+      iam_role_arn    = "arn:aws:iam::912275679263:role/blue-eks-ng-20260519"
+    }
+    green = {
+      name            = "aphl-eks-green"
+      use_name_prefix = false
+
+      subnet_ids = [
+        "subnet-045847291edbf8ac4",
+        "subnet-09aa2ce46e33c022e",
+        "subnet-0ae7058268391a444",
+      ]
+
+      min_size     = 2
+      max_size     = 2
+      desired_size = 2
+
+      capacity_type = "SPOT"
+      disk_size     = 20
+
+      labels = {
+        "aphl/memory-intensive" = "true"
+      }
+
+      create_iam_role = false
+      iam_role_arn    = "arn:aws:iam::912275679263:role/green-eks-ng-20260519"
     }
   }
 
@@ -130,6 +169,14 @@ resource "aws_security_group" "remote_access" {
     cidr_blocks = ["10.0.0.0/8"]
   }
 
+  ingress {
+    description     = "Redis/Valkey access from EKS nodes"
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = ["sg-039ea86f39de74e5a"] # aphl-eks-node-2022123000402777470000000f (EKS node shared security group)
+  }
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -158,24 +205,4 @@ resource "aws_iam_policy" "node_additional" {
   })
 
   tags = local.tags
-}
-
-data "aws_ami" "eks_default" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amazon-eks-node-${local.cluster_version}-v*"]
-  }
-}
-
-data "aws_ami" "eks_default_arm" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amazon-eks-arm64-node-${local.cluster_version}-v*"]
-  }
 }

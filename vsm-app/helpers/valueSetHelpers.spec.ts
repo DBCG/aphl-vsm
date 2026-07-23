@@ -12,7 +12,11 @@ import {
   organizeValueSetDefinitionData,
   setExpansionParametersForVSP,
   getVSPManifestVersions,
-  getProgramManifestVersions
+  getProgramManifestVersions,
+  findUnversionedManifestRefs,
+  filterToUnversioned,
+  applyVersionUpdate,
+  applyAddManifestEntry
 } from './valueSetHelpers'
 import { uniq } from 'lodash'
 import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional';
@@ -1029,6 +1033,187 @@ describe('VSP Manifest Functions', () => {
     })
   })
 
+  describe('findUnversionedManifestRefs', () => {
+    it('returns empty arrays when the library has no contained Parameters', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      expect(findUnversionedManifestRefs(library)).toEqual({ codeSystems: [], valueSets: [] })
+    })
+
+    it('returns empty arrays when every entry has a version pin', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org|2.74' },
+            { name: 'valueset-version', valueString: 'http://hl7.org/fhir/ValueSet/gender|4.0.1' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      expect(findUnversionedManifestRefs(library)).toEqual({ codeSystems: [], valueSets: [] })
+    })
+
+    it('flags entries with no pipe at all (canonical only)', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org' },
+            { name: 'valueset-version', valueString: 'http://hl7.org/fhir/ValueSet/gender' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      expect(findUnversionedManifestRefs(library)).toEqual({
+        codeSystems: ['http://loinc.org'],
+        valueSets: ['http://hl7.org/fhir/ValueSet/gender']
+      })
+    })
+
+    it('flags entries with an empty version segment after the pipe', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org|' },
+            { name: 'valueset-version', valueString: 'http://hl7.org/fhir/ValueSet/gender|   ' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      expect(findUnversionedManifestRefs(library)).toEqual({
+        codeSystems: ['http://loinc.org'],
+        valueSets: ['http://hl7.org/fhir/ValueSet/gender']
+      })
+    })
+
+    it('splits versioned and unversioned entries correctly when mixed', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueString: 'http://snomed.info/sct|20240301' },
+            { name: 'system-version', valueString: 'http://loinc.org' },
+            { name: 'valueset-version', valueString: 'http://hl7.org/fhir/ValueSet/gender|4.0.1' },
+            { name: 'valueset-version', valueString: 'http://example.org/ValueSet/x' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      expect(findUnversionedManifestRefs(library)).toEqual({
+        codeSystems: ['http://loinc.org'],
+        valueSets: ['http://example.org/ValueSet/x']
+      })
+    })
+
+    it('deduplicates repeated unversioned canonicals', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org' },
+            { name: 'system-version', valueString: 'http://loinc.org|' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      expect(findUnversionedManifestRefs(library).codeSystems).toEqual(['http://loinc.org'])
+    })
+
+    it('reads valueCanonical and valueUri in addition to valueString', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueCanonical: 'http://canonical.example/cs' },
+            { name: 'valueset-version', valueUri: 'http://uri.example/vs' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      expect(findUnversionedManifestRefs(library)).toEqual({
+        codeSystems: ['http://canonical.example/cs'],
+        valueSets: ['http://uri.example/vs']
+      })
+    })
+
+    it('reads from expansion-parameters-ecr as well', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-program',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-ecr',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      expect(findUnversionedManifestRefs(library).codeSystems).toEqual(['http://loinc.org'])
+    })
+
+    it('ignores unrelated parameter names', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'force', valueBoolean: true },
+            { name: 'system-version', valueString: 'http://loinc.org' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      expect(findUnversionedManifestRefs(library)).toEqual({
+        codeSystems: ['http://loinc.org'],
+        valueSets: []
+      })
+    })
+  })
+
   describe('setExpansionParametersForVSP + getVSPManifestVersions round-trip', () => {
     it('should produce identical data after write then read', () => {
       const library: fhir4.Library = {
@@ -1119,6 +1304,145 @@ describe('VSP Manifest Functions', () => {
       const result = getProgramManifestVersions(library)
       expect(result['http://loinc.org']).toEqual(['2.74'])
       expect(result['http://snomed.info/sct']).toEqual([''])
+    })
+  })
+
+  describe('filterToUnversioned', () => {
+    it('returns empty object when input is empty', () => {
+      expect(filterToUnversioned({})).toEqual({})
+    })
+
+    it('returns empty object when input is null or undefined', () => {
+      expect(filterToUnversioned(undefined as any)).toEqual({})
+      expect(filterToUnversioned(null as any)).toEqual({})
+    })
+
+    it('returns empty object when every entry has a pinned version', () => {
+      const input = {
+        'http://loinc.org': ['2.74'],
+        'http://snomed.info/sct': ['20240301']
+      }
+      expect(filterToUnversioned(input)).toEqual({})
+    })
+
+    it('retains entries with empty-string versions', () => {
+      const input = {
+        'http://loinc.org': [''],
+        'http://snomed.info/sct': ['20240301']
+      }
+      expect(filterToUnversioned(input)).toEqual({ 'http://loinc.org': [''] })
+    })
+
+    it('treats whitespace-only versions as unversioned', () => {
+      const input = {
+        'http://loinc.org': ['   '],
+        'http://snomed.info/sct': ['\t']
+      }
+      expect(filterToUnversioned(input)).toEqual({
+        'http://loinc.org': ['   '],
+        'http://snomed.info/sct': ['\t']
+      })
+    })
+
+    it('keeps only the unversioned entries when a system has a mix', () => {
+      const input = {
+        'http://loinc.org': ['2.74', '', '2.75']
+      }
+      expect(filterToUnversioned(input)).toEqual({ 'http://loinc.org': [''] })
+    })
+
+    it('does not mutate the input', () => {
+      const input = {
+        'http://loinc.org': ['', '2.74']
+      }
+      const snapshot = JSON.parse(JSON.stringify(input))
+      filterToUnversioned(input)
+      expect(input).toEqual(snapshot)
+    })
+  })
+
+  describe('applyVersionUpdate', () => {
+    it('replaces an existing version in place (order preserved)', () => {
+      const input = {
+        'http://loinc.org': ['2.73', '2.74', '2.75']
+      }
+      const result = applyVersionUpdate(input, 'http://loinc.org', '2.74', '2.74a')
+      expect(result['http://loinc.org']).toEqual(['2.73', '2.74a', '2.75'])
+    })
+
+    it('appends newVersion when oldVersion is not found', () => {
+      const input = {
+        'http://loinc.org': ['2.73']
+      }
+      const result = applyVersionUpdate(input, 'http://loinc.org', '2.99', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.73', '2.74'])
+    })
+
+    it('does not append when newVersion already exists and oldVersion is not found', () => {
+      const input = {
+        'http://loinc.org': ['2.73']
+      }
+      const result = applyVersionUpdate(input, 'http://loinc.org', '2.99', '2.73')
+      expect(result['http://loinc.org']).toEqual(['2.73'])
+    })
+
+    it('creates the system entry if missing', () => {
+      const result = applyVersionUpdate({}, 'http://loinc.org', '', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.74'])
+    })
+
+    it('can replace a versioned entry with an empty-string version (unpin)', () => {
+      const input = {
+        'http://loinc.org': ['2.74']
+      }
+      const result = applyVersionUpdate(input, 'http://loinc.org', '2.74', '')
+      expect(result['http://loinc.org']).toEqual([''])
+    })
+
+    it('does not mutate the input', () => {
+      const input = {
+        'http://loinc.org': ['2.73', '2.74']
+      }
+      const snapshot = JSON.parse(JSON.stringify(input))
+      applyVersionUpdate(input, 'http://loinc.org', '2.74', '2.75')
+      expect(input).toEqual(snapshot)
+    })
+  })
+
+  describe('applyAddManifestEntry', () => {
+    it('adds a new canonical with the given version', () => {
+      const result = applyAddManifestEntry({}, 'http://loinc.org', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.74'])
+    })
+
+    it('appends a version to an existing canonical', () => {
+      const input = {
+        'http://loinc.org': ['2.73']
+      }
+      const result = applyAddManifestEntry(input, 'http://loinc.org', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.73', '2.74'])
+    })
+
+    it('dedupes when the same version is added again', () => {
+      const input = {
+        'http://loinc.org': ['2.74']
+      }
+      const result = applyAddManifestEntry(input, 'http://loinc.org', '2.74')
+      expect(result['http://loinc.org']).toEqual(['2.74'])
+    })
+
+    it('adds an unversioned entry when version is empty string', () => {
+      const result = applyAddManifestEntry({}, 'http://loinc.org', '')
+      expect(result['http://loinc.org']).toEqual([''])
+    })
+
+    it('does not mutate the input', () => {
+      const input = {
+        'http://loinc.org': ['2.74']
+      }
+      const snapshot = JSON.parse(JSON.stringify(input))
+      applyAddManifestEntry(input, 'http://snomed.info/sct', '20240301')
+      expect(input).toEqual(snapshot)
     })
   })
 })

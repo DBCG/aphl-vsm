@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, KeyboardEvent } from 'react'
 import DataTable, { TableColumn } from 'react-data-table-component'
 import InfoIcon from '@mui/icons-material/Info'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { IconButton } from './buttons/IconButton'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
@@ -8,6 +9,7 @@ import { ManifestSystemVersionPair, SelectedManifestDataVersion } from '@/types/
 import { customTableStyles } from './tables/themes'
 import { Typography, Modal, Tooltip, Box, Button as MuiButton, TextField, InputAdornment, Chip } from '@mui/material'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import EditIcon from '@mui/icons-material/Edit'
 import { modalStyle } from '@/styles'
 import { namesByUri, getNameByUri } from './EditManifestDetails/manifestHelpers'
 import SearchIcon from '@mui/icons-material/Search'
@@ -39,11 +41,42 @@ type ManifestDetailTableProps = {
   programId: string
   availableUpdates?: ManifestSystemVersionPair[]
   resourceType?: 'program' | 'vsp' // NEW: specify resource type
+  onUpdateVersion?: (system: string, oldVersion: string, newVersion: string) => void
+  unversionedSeverity?: 'warning' | 'info'
 }
 
-const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, availableUpdates, resourceType = 'program' }: ManifestDetailTableProps) => {
+const ManifestDetailTable = ({
+  deleteFn,
+  updateFn,
+  manifestData,
+  programId,
+  availableUpdates,
+  resourceType = 'program',
+  onUpdateVersion,
+  unversionedSeverity = 'warning'
+}: ManifestDetailTableProps) => {
   const [targetedCsToUpdate, setTargetedCsToUpdate] = useState<ManifestSystemVersionPair | null>(null)
   const [filterText, setFilterText] = useState('')
+  const [editingRowId, setEditingRowId] = useState<string | null>(null)
+  const [editingValue, setEditingValue] = useState('')
+
+  const editable = typeof onUpdateVersion === 'function'
+
+  const commitEdit = (row: ManifestSystemVersionPair) => {
+    const next = editingValue.trim()
+    if (next !== (row.version ?? '')) {
+      onUpdateVersion!(row.system!, row.version ?? '', next)
+    }
+    setEditingRowId(null)
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, row: ManifestSystemVersionPair) => {
+    if (e.key === 'Enter') {
+      commitEdit(row)
+    } else if (e.key === 'Escape') {
+      setEditingRowId(null)
+    }
+  }
 
   // Use the correct API endpoint based on resource type
   const manifestEndpoint = programId
@@ -96,19 +129,70 @@ const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, avai
       sortable: true,
       wrap: true,
       cell: (row: ManifestSystemVersionPair) => {
-        if (!row.version) {
+        if (editable && editingRowId === row.id) {
           return (
-            <Tooltip title="Version not specified. Please resolve this entry by pinning a version." arrow>
+            <TextField
+              size="small"
+              autoFocus
+              value={editingValue}
+              onChange={(e) => setEditingValue(e.target.value)}
+              onBlur={() => commitEdit(row)}
+              onKeyDown={(e) => handleKeyDown(e as KeyboardEvent<HTMLInputElement>, row)}
+              placeholder="e.g. 2.74"
+              sx={{ minWidth: 140 }}
+              inputProps={{ 'data-edit-version': row.system }}
+            />
+          )
+        }
+
+        const startEdit = () => {
+          if (!editable) return
+          setEditingRowId(row.id ?? null)
+          setEditingValue(row.version ?? '')
+        }
+
+        if (!row.version) {
+          const isInfo = unversionedSeverity === 'info'
+          const tooltipText = isInfo
+            ? editable
+              ? 'No version pinned. Click to set one, or leave unversioned to let the terminology server choose.'
+              : 'No version pinned. The terminology server will choose a version during expansion.'
+            : 'Version not specified. Please resolve this entry by pinning a version.'
+          return (
+            <Tooltip title={tooltipText} arrow>
               <Chip
-                icon={<WarningAmberIcon />}
-                label="Unresolved"
+                icon={isInfo ? <InfoOutlinedIcon /> : <WarningAmberIcon />}
+                label={isInfo ? 'Unversioned' : 'Unresolved'}
                 size="small"
-                color="warning"
+                color={isInfo ? 'info' : 'warning'}
                 variant="outlined"
+                onClick={editable ? startEdit : undefined}
+                sx={editable ? { cursor: 'pointer' } : undefined}
               />
             </Tooltip>
           )
         }
+
+        if (editable) {
+          return (
+            <Box
+              onClick={startEdit}
+              sx={{
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+                px: 0.5,
+                borderRadius: 1,
+                '&:hover': { backgroundColor: 'action.hover' }
+              }}
+            >
+              <Typography variant="body2" component="span">{row.version}</Typography>
+              <EditIcon fontSize="inherit" sx={{ color: 'action.active', width: 14, height: 14 }} />
+            </Box>
+          )
+        }
+
         return row.version
       }
     },

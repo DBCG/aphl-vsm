@@ -4,7 +4,7 @@
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.0"
+  version = "~> 5.0"
 
   name = local.name
   cidr = local.vpc_cidr
@@ -14,12 +14,14 @@ module "vpc" {
   public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
   intra_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 52)]
 
-  enable_ipv6                     = false
-  assign_ipv6_address_on_creation = false
-  create_egress_only_igw          = false
+  enable_ipv6            = false
+  create_egress_only_igw = false
+  map_public_ip_on_launch = true
 
   enable_nat_gateway   = true
   single_nat_gateway   = true
+  reuse_nat_ips        = true
+  external_nat_ip_ids  = ["eipalloc-00ccb3db900bc1be6"]
   enable_dns_hostnames = true
   enable_dns_support   = true
 

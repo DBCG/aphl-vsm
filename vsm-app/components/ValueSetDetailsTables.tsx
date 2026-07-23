@@ -352,9 +352,11 @@ const ValueSetDetailsTables = ({
   }
 
   const isVsmGrouper = isGrouperValueSet && isVSMOwnedVSet(currentValueSet)
+  // For VSM Groupers, filter programValueSets so only grouper specific leafs are displayed.
   const definitionColumnsAndData = generateColumnsAndData({
     currentVs: currentValueSet,
-    valueSetsInVsmGrouper: isVsmGrouper ? programValuesets?.data : null
+    valueSetsInVsmGrouper: isVsmGrouper ? programValuesets?.data?.filter((item: DataItem) =>
+      item.groups?.some((g) => g.id === currentValueSet.id || g.url === currentValueSet.url)): null
   })
 
   let expansionData = expansion?.contains

@@ -149,6 +149,7 @@ export const updateVsMetadata = ({
 // codes and title are required
 export interface CreateProvisionalVs {
   codesBySystemToAdd: CodesBySystem
+  codesBySystemToRemove?: CodesBySystem
   titleToUpdate: string
   authorToUpdate: string | undefined
   stewardToUpdate: string | undefined
