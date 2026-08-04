@@ -220,7 +220,7 @@ interface FlatCondition {
 }
 
 interface FlatCodeOld {
-  code: string
+  codeValue: string
   codeSystemName: string
   codeSystemOid: string
   display: string
@@ -238,7 +238,7 @@ interface FlatCodeOld {
 }
 
 interface FlatCodeNew {
-  code: string
+  codeValue: string
   codeSystemName: string
   codeSystemOid: string
   display: string

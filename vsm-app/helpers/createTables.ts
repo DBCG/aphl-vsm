@@ -286,7 +286,7 @@ const formatCodeData = ({ codeItems, defaultChange }: FormatCodeItems) => {
   return codeItems.map((ci: FlatCodeOld | FlatCodeNew) => ({
     change: defaultChange || ci?.operation?.type || '',
     oid: ci?.memberOid || '',
-    code: ci?.code || '',
+    code: ci?.codeValue || '',
     descriptor: ci?.display || '',
     codeSystem: ci?.system || '',
     codeSystemVersion: ci?.version || '',
@@ -303,7 +303,7 @@ const generateCodeChangesTable = (grouperPage: GrouperVsPage) => {
     const hasMatchInNewCodes: boolean = Boolean(
       newCodes?.find((newCodeItem) => {
         return (
-          newCodeItem?.code === oldCodeItem?.code &&
+          newCodeItem?.codeValue === oldCodeItem?.codeValue &&
           newCodeItem?.system === oldCodeItem?.system &&
           newCodeItem?.version === oldCodeItem?.version
         );
