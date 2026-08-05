@@ -14,6 +14,8 @@ type ChangeValue = {
   operation: {
     type: string
     newValue: any
+    oldValue?: any
+    path?: string
   }
   parentValueSetName: string
   codeSystemName: string
@@ -28,14 +30,20 @@ type CollectedChangeMap = {
   [key: string]: CollectedChange[]
 }
 
-// Go to newData
-// recursive search for "operation"
-// if found in the case of replace
-// use path parameter against the root (aka most parent object) to get the new value, and use oldValue set in the operation for the old value
+const OPERATION_TYPES = {
+  INSERT: 'insert',
+  DELETE: 'delete',
+  REPLACE: 'replace'
+}
+
+// Recursively walks a changelog page side (oldData or newData) collecting every element that
+// carries an `operation`, bucketed by operation type. A replace is only ever half-present on a
+// given side (see buildChangeRows), so both sides need collecting to render one.
 const collector = (input: any) => {
   const operation: CollectedChangeMap = {
     delete: [],
-    insert: []
+    insert: [],
+    replace: []
   }
 
   if (input) {
@@ -44,22 +52,24 @@ const collector = (input: any) => {
   return operation
   function gatherNewValues(artifact: any, keyName?: string) {
     Object.entries(artifact).forEach(([key, value]) => {
-      if (value && typeof value === 'object') {
-        // @ts-ignore
-        if ('operation' in value && value.operation.type !== 'replace' && typeof value?.value !== 'object') {
-          // @ts-ignore
-          operation[value?.operation?.type].push({ keyName: keyName || key, change: value?.operation?.type, ...value } as CollectedChange)
-        } else {
-          gatherNewValues(value, key)
-        }
+      if (!value || typeof value !== 'object') {
+        return
+      }
+      const change = (value as any)?.operation?.type
+      // an element whose own `value` is a primitive is a leaf change we can render as a row;
+      // anything else is a container we need to walk into
+      const isLeafChange = 'operation' in value && typeof (value as any)?.value !== 'object'
+      if (isLeafChange && change) {
+        // optional chaining guards against operation types we don't bucket (rather than throwing)
+        operation[change]?.push({ keyName: keyName || key, change, ...(value as any) } as CollectedChange)
+      }
+      // Replaces used to be skipped entirely, which meant this node was still traversed for any
+      // nested insert/delete children. Keep recursing on them so that behaviour is preserved.
+      if (!isLeafChange || change === OPERATION_TYPES.REPLACE) {
+        gatherNewValues(value, key)
       }
     })
   }
-}
-
-const OPERATION_TYPES = {
-  INSERT: 'insert',
-  DELETE: 'delete'
 }
 
 /**
@@ -145,6 +155,51 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
   })
 
   return conditions
+}
+
+/**
+ * Turns a merged change map into [Change, Field Name, Old Value, New Value] rows.
+ *
+ * Inserts and deletes only exist on one side, so their canonical goes in the matching column.
+ * A replace is split across both sides by Page.addReplaceOperation - the oldData entry carries
+ * operation.oldValue and holds the previous canonical in `value`, the newData entry carries
+ * operation.newValue and holds the new one - so the two halves are paired by operation.path to
+ * render a single row.
+ */
+const buildChangeRows = (changeMap: CollectedChangeMap) => {
+  const changes = Object.values(changeMap)
+    ?.filter((i) => i?.length > 0)
+    .flatMap((i) => i)
+
+  const rows: any[][] = []
+  const replacements = new Map<string, { keyName: string; oldValue?: any; newValue?: any }>()
+
+  changes.forEach((row) => {
+    if (row.change !== OPERATION_TYPES.REPLACE) {
+      rows.push([
+        row.change,
+        row.keyName,
+        row.change === OPERATION_TYPES.DELETE ? row.value : '',
+        row.change === OPERATION_TYPES.INSERT ? row.value : ''
+      ])
+      return
+    }
+    // fall back to keyName when the diff didn't supply a path, so unpaired halves still render
+    const key = row.operation?.path || row.keyName
+    const pair = replacements.get(key) ?? { keyName: row.keyName }
+    if (row.operation?.oldValue !== undefined) {
+      pair.oldValue = row.value
+    } else {
+      pair.newValue = row.value
+    }
+    replacements.set(key, pair)
+  })
+
+  replacements.forEach(({ keyName, oldValue, newValue }) => {
+    rows.push([OPERATION_TYPES.REPLACE, keyName, oldValue ?? '', newValue ?? ''])
+  })
+
+  return rows
 }
 
 // Merges the old and new data into a single object
@@ -239,18 +294,7 @@ const generateReadMeSheet = (
 
 const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) => {
   const planDefData = mergeChanges(collector(planDefChanges.oldData), collector(planDefChanges.newData))
-  const planDefRows = Object.values(planDefData)
-    ?.filter((i) => i?.length > 0)
-    .flatMap((i) => i)
-    // collector only gathers inserts and deletes, so there is never a genuine old/new pair:
-    // row.value is the canonical of the affected element, and it belongs on whichever side the
-    // change happened. (operation.newValue holds the whole element, which serialises to raw JSON.)
-    .map((row) => [
-      row.change,
-      row.keyName,
-      row.change === OPERATION_TYPES.DELETE ? row.value : '',
-      row.change === OPERATION_TYPES.INSERT ? row.value : ''
-    ])
+  const planDefRows = buildChangeRows(planDefData)
   if (planDefRows.length > 0) {
     const planDefinitionSheet = workbook.addWorksheet('Plan Definition')
     planDefinitionSheet.addTable({
@@ -289,15 +333,7 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
     const cell = rctcSheet.getCell(`A${index + 1}`)
     cell.font = { bold: true, color: { argb: 'FF0000FF' } }
   })
-  const rctcRows = Object.values(grouperLibDiff)
-    ?.filter((i) => i?.length > 0)
-    .flatMap((i) => i)
-    .map((row) => [
-        row.change,
-        row.keyName,
-        row.change === OPERATION_TYPES.DELETE ? row.value : '',
-        row.change === OPERATION_TYPES.INSERT ? row.value : ''
-    ])
+  const rctcRows = buildChangeRows(grouperLibDiff)
 
   if (rctcRows.length > 0) {
     const rctcTable = rctcSheet.addTable({
@@ -465,6 +501,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
 export {
   collector,
   OPERATION_TYPES,
+  buildChangeRows,
+  mergeChanges,
   generatePlanDefSheet,
   generateRCTCSheet,
   generateReadMeSheet,
