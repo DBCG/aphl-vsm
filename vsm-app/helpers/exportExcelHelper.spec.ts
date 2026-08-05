@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+jest.mock('undici', () => ({ fetch: jest.fn(), Agent: jest.fn() }))
+
 import { buildChangeRows, collector, mergeChanges } from './exportExcelHelper'
 
 // Shapes mirror a $create-changelog Library page: relatedArtifacts entries carry the canonical in
