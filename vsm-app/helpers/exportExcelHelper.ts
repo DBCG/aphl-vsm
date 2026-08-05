@@ -242,7 +242,15 @@ const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) =
   const planDefRows = Object.values(planDefData)
     ?.filter((i) => i?.length > 0)
     .flatMap((i) => i)
-    .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
+    // collector only gathers inserts and deletes, so there is never a genuine old/new pair:
+    // row.value is the canonical of the affected element, and it belongs on whichever side the
+    // change happened. (operation.newValue holds the whole element, which serialises to raw JSON.)
+    .map((row) => [
+      row.change,
+      row.keyName,
+      row.change === OPERATION_TYPES.DELETE ? row.value : '',
+      row.change === OPERATION_TYPES.INSERT ? row.value : ''
+    ])
   if (planDefRows.length > 0) {
     const planDefinitionSheet = workbook.addWorksheet('Plan Definition')
     planDefinitionSheet.addTable({
@@ -284,7 +292,12 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
   const rctcRows = Object.values(grouperLibDiff)
     ?.filter((i) => i?.length > 0)
     .flatMap((i) => i)
-    .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
+    .map((row) => [
+        row.change,
+        row.keyName,
+        row.change === OPERATION_TYPES.DELETE ? row.value : '',
+        row.change === OPERATION_TYPES.INSERT ? row.value : ''
+    ])
 
   if (rctcRows.length > 0) {
     const rctcTable = rctcSheet.addTable({
@@ -293,10 +306,10 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
       headerRow: true,
       style: {},
       columns: [
+        { name: 'Change', filterButton: true },
         { name: 'Field Name', filterButton: true },
         { name: 'Old Value', filterButton: true },
-        { name: 'New Value', filterButton: true },
-        { name: 'Change', filterButton: true }
+        { name: 'New Value', filterButton: true }
       ],
       rows: rctcRows
     })
