@@ -84,6 +84,16 @@ const getProgramVersions = async (req: NextApiRequest, res: NextApiResponse, ses
   }
 }
 
+// The download POSTs the entire changelog as the request body, which for a full eRSD program
+// runs well past the 1mb default.
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '100mb',
+    },
+  }
+}
+
 export default handler({
   POST: { action: downloadChangeLog, access: ['admin', 'publisher', 'editor', 'reviewer'] },
   GET: { action: getProgramVersions }

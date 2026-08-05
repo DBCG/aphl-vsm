@@ -24,6 +24,9 @@ const nextConfig = {
   },
   reactStrictMode: true,
   compress: true,
+  experimental: {
+    middlewareClientMaxBodySize: '100mb',
+  },
   async headers() {
     return [
       {
