@@ -46,6 +46,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.resourceType === 'ValueSet')
 
   generateReadMeSheet(workbook, sourceGrouperLibrary, targetGrouperLibrary, changeJson.pages[0])
+  //TODO:: Resolve issues with diff for these sheets and restore generation. See:https://alphora.atlassian.net/browse/APHL-1428
   //generatePlanDefSheet(workbook, changeJson.pages.filter((page: any) => page.resourceType === 'PlanDefinition')?.[0])
   //generateRCTCSheet(workbook, targetGrouperLibrary, grouperLibDiffJson)
 
