@@ -45,6 +45,8 @@ describe('buildChangeRows', () => {
 
   // The case that was previously dropped entirely: a version bump is matched by url + type, so the
   // diff reports it as a replace rather than a delete/insert pair.
+  // Note: Each side has its own canonical in `value` and a pointer to the OTHER side via the operation.
+  // So the oldData half carries newValue and the newData half carries oldValue.
   it('pairs the two halves of a replace into a single old -> new row', () => {
     const path = 'relatedArtifact[0].resource'
     const rows = buildRows(
@@ -52,7 +54,7 @@ describe('buildChangeRows', () => {
         relatedArtifacts: [
           {
             value: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|3.1.2',
-            operation: { type: 'replace', path, oldValue: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|3.1.2' }
+            operation: { type: 'replace', path, newValue: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|3.2.2' }
           }
         ]
       },
@@ -60,7 +62,7 @@ describe('buildChangeRows', () => {
         relatedArtifacts: [
           {
             value: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|3.2.2',
-            operation: { type: 'replace', path, newValue: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|3.2.2' }
+            operation: { type: 'replace', path, oldValue: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|3.1.2' }
           }
         ]
       }
@@ -81,7 +83,7 @@ describe('buildChangeRows', () => {
       relatedArtifacts: [
         {
           value: 'http://ersd.aimsplatform.org/fhir/ValueSet/lotc|3.2.2',
-          operation: { type: 'replace', path: 'relatedArtifact[3].resource', newValue: 'x' }
+          operation: { type: 'replace', path: 'relatedArtifact[3].resource', oldValue: 'lotc|3.1.2' }
         }
       ]
     })
@@ -95,14 +97,14 @@ describe('buildChangeRows', () => {
     const rows = buildRows(
       {
         relatedArtifacts: [
-          { value: 'a|1', operation: { type: 'replace', path: 'relatedArtifact[0].resource', oldValue: 'a|1' } },
-          { value: 'b|1', operation: { type: 'replace', path: 'relatedArtifact[1].resource', oldValue: 'b|1' } }
+          { value: 'a|1', operation: { type: 'replace', path: 'relatedArtifact[0].resource', newValue: 'a|2' } },
+          { value: 'b|1', operation: { type: 'replace', path: 'relatedArtifact[1].resource', newValue: 'b|2' } }
         ]
       },
       {
         relatedArtifacts: [
-          { value: 'a|2', operation: { type: 'replace', path: 'relatedArtifact[0].resource', newValue: 'a|2' } },
-          { value: 'b|2', operation: { type: 'replace', path: 'relatedArtifact[1].resource', newValue: 'b|2' } }
+          { value: 'a|2', operation: { type: 'replace', path: 'relatedArtifact[0].resource', oldValue: 'a|1' } },
+          { value: 'b|2', operation: { type: 'replace', path: 'relatedArtifact[1].resource', oldValue: 'b|1' } }
         ]
       }
     )

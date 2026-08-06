@@ -161,10 +161,11 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
  * Turns a merged change map into [Change, Field Name, Old Value, New Value] rows.
  *
  * Inserts and deletes only exist on one side, so their canonical goes in the matching column.
- * A replace is split across both sides by Page.addReplaceOperation - the oldData entry carries
- * operation.oldValue and holds the previous canonical in `value`, the newData entry carries
- * operation.newValue and holds the new one - so the two halves are paired by operation.path to
- * render a single row.
+ * A replace is split across both sides by Page.addReplaceOperation, where each side holds its own
+ * canonical in `value` and points at the other side through the operation: the oldData entry gets
+ * operation.newValue (what it changed to) and the newData entry gets operation.oldValue (what it
+ * changed from). So the half carrying newValue is the old side, and vice versa. The two are paired
+ * by operation.path to render a single row.
  */
 const buildChangeRows = (changeMap: CollectedChangeMap) => {
   const changes = Object.values(changeMap)
@@ -187,7 +188,7 @@ const buildChangeRows = (changeMap: CollectedChangeMap) => {
     // fall back to keyName when the diff didn't supply a path, so unpaired halves still render
     const key = row.operation?.path || row.keyName
     const pair = replacements.get(key) ?? { keyName: row.keyName }
-    if (row.operation?.oldValue !== undefined) {
+    if (row.operation?.newValue !== undefined) {
       pair.oldValue = row.value
     } else {
       pair.newValue = row.value
