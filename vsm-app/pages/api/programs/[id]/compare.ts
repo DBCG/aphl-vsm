@@ -39,15 +39,15 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
 
   const sourceGrouperLibrary = (await getGrouperLibrary(sourceLibrary)) as fhir4.Library
   const targetGrouperLibrary = (await getGrouperLibrary(targetLibrary)) as fhir4.Library
-  const grouperLibDiffJson = changeJson.pages.filter(
+/*  const grouperLibDiffJson = changeJson.pages.filter(
     (page: any) => page.resourceType === 'Library' && page.url === targetGrouperLibrary.url
-  )?.[0]
+  )?.[0]*/
 
   const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.resourceType === 'ValueSet')
 
   generateReadMeSheet(workbook, sourceGrouperLibrary, targetGrouperLibrary, changeJson.pages[0])
-  generatePlanDefSheet(workbook, changeJson.pages.filter((page: any) => page.resourceType === 'PlanDefinition')?.[0])
-  generateRCTCSheet(workbook, targetGrouperLibrary, grouperLibDiffJson)
+  //generatePlanDefSheet(workbook, changeJson.pages.filter((page: any) => page.resourceType === 'PlanDefinition')?.[0])
+  //generateRCTCSheet(workbook, targetGrouperLibrary, grouperLibDiffJson)
 
   await generateGrouperValuesetSheet(workbook, groupingValueSetsChangeLogs)
 
