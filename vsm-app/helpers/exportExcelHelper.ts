@@ -73,6 +73,12 @@ const collector = (input: any) => {
 }
 
 /**
+ * Builds a table name Excel will accept. Grouper ids look like "dxtc-3.2.2", this logic converts the hyphen and periods
+ * to underscores to ensure the table name is valid.
+ */
+const toTableName = (prefix: string, id: string) => `${prefix}_${String(id ?? '').replaceAll(/\W/g, '_')}`
+
+/**
  * Autosorts the table based on the content of the rows. Not recommended to use this more than once per sheet.
  * Doing so will distort the rows for other tables.
  * @param table
@@ -433,7 +439,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
         groungListTableTitle.value = 'Grouping List'
         groungListTableTitle.font = { bold: true, color: { argb: 'FF0000FF' } }
         const groupingListTable = groupingValueSetSheet.addTable({
-          name: 'valueset_groupinglist_' + currentId,
+          name: toTableName('valueset_groupinglist', currentId),
           ref: `A${groupingTableStartRowCount + 1}`,
           headerRow: true,
           style: {},
@@ -477,7 +483,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
         tableTitle.value = 'Code List'
         tableTitle.font = { bold: true, color: { argb: 'FF0000FF' } }
         const table = groupingValueSetSheet.addTable({
-          name: 'valueset_codelist_' + currentId,
+          name: toTableName('valueset_codelist', currentId),
           ref: `A${codeRowsStartRowCount + 1}`,
           headerRow: true,
           style: {},
