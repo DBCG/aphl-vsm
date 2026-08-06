@@ -26,7 +26,7 @@ describe('/api/value-set-packages/create', () => {
     })
     FhirClient.getInstance().update = jest.fn().mockResolvedValue({
       resourceType: 'Library',
-      id: 'hl7.fhir.us.core-vsp-2026-01'
+      id: 'hl7.fhir.us.core.6.1.0-2026-01'
     })
   })
 
@@ -40,7 +40,7 @@ describe('/api/value-set-packages/create', () => {
     expect(res._getStatusCode()).toBe(201)
 
     const data = JSON.parse(res._getData())
-    expect(data.vspId).toBe('hl7.fhir.us.core-vsp-2026-01')
+    expect(data.vspId).toBe('hl7.fhir.us.core.6.1.0-2026-01')
     expect(data.message).toContain('successfully')
   })
 
@@ -55,7 +55,7 @@ describe('/api/value-set-packages/create', () => {
     expect(FhirClient.getInstance().update).toHaveBeenCalledWith(
       expect.objectContaining({
         resourceType: 'Library',
-        id: 'hl7.fhir.us.core-vsp-2026-01',
+        id: 'hl7.fhir.us.core.6.1.0-2026-01',
         body: expect.objectContaining({
           resourceType: 'Library',
           status: 'draft',
@@ -134,7 +134,7 @@ describe('/api/value-set-packages/create', () => {
     // Read succeeds = VSP already exists
     FhirClient.getInstance().read = jest.fn().mockResolvedValue({
       resourceType: 'Library',
-      id: 'hl7.fhir.us.core-vsp-2026-01'
+      id: 'hl7.fhir.us.core.6.1.0-2026-01'
     })
 
     const { req, res } = createMocks({

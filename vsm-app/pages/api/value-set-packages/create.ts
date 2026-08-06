@@ -41,7 +41,7 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // Construct VSP URL and ID
     const vspUrl = constructVSPUrl(vspMetadata)
-    const vspId = constructVSPId(body.igPackageId, body.vspVersion)
+    const vspId = constructVSPId(body.igPackageId, igVersion, body.vspVersion)
 
     Logger.getLogger().info(`Constructed VSP URL: ${vspUrl}`)
     Logger.getLogger().info(`Constructed VSP ID: ${vspId}`)

@@ -51,17 +51,22 @@ describe('vspHelpers', () => {
   })
 
   describe('constructVSPId', () => {
-    it('should build a correct VSP ID', () => {
-      expect(constructVSPId('hl7.fhir.us.core', '2026-01')).toBe('hl7.fhir.us.core-vsp-2026-01')
+    it('should build a correct VSP ID including the IG version', () => {
+      expect(constructVSPId('hl7.fhir.us.core', '6.1.0', '2026-01')).toBe('hl7.fhir.us.core.6.1.0-2026-01')
     })
 
     it('should handle different package IDs and versions', () => {
-      expect(constructVSPId('hl7.fhir.us.ecr', '2025-06')).toBe('hl7.fhir.us.ecr-vsp-2025-06')
+      expect(constructVSPId('hl7.fhir.us.ecr', '2.1.0', '2025-06')).toBe('hl7.fhir.us.ecr.2.1.0-2025-06')
     })
 
     it('should include the full version string', () => {
-      const id = constructVSPId('some.package', '2030-12')
-      expect(id).toBe('some.package-vsp-2030-12')
+      const id = constructVSPId('some.package', '1.0.0', '2030-12')
+      expect(id).toBe('some.package.1.0.0-2030-12')
+    })
+
+    it('should produce distinct IDs for different IG versions with the same VSP version (issue #700)', () => {
+      expect(constructVSPId('hl7.fhir.us.core', '6.1.0', '2026-06'))
+        .not.toBe(constructVSPId('hl7.fhir.us.core', '6.2.0', '2026-06'))
     })
   })
 

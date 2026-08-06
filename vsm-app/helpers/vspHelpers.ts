@@ -33,14 +33,16 @@ export const constructVSPUrl = (igMetadata: VSPMetadata): string => {
  * constructVSPId: Builds the FHIR resource ID for a VSP Library
  *
  * Why needed: FHIR resource IDs must be unique and follow a convention.
- * The ID is used to reference the resource in URLs and searches.
+ * The ID must include the IG version so that packages for different IG
+ * versions that share the same VSP version (date) don't collide (issue #700).
  *
- * Example: "hl7.fhir.us.core" + "2026-01" → "hl7.fhir.us.core-vsp-2026-01"
+ * Example: "hl7.fhir.us.core" + "6.1.0" + "2026-01" → "hl7.fhir.us.core.6.1.0-2026-01"
  *
- * Why this pattern: Ensures uniqueness by combining package ID and version
+ * Why this pattern: {igPackageId}.{igVersion}-{vspVersion} ensures uniqueness
+ * across both IG versions and VSP versions.
  */
-export const constructVSPId = (igPackageId: string, vspVersion: string): string => {
-  return `${igPackageId}-vsp-${vspVersion}`
+export const constructVSPId = (igPackageId: string, igVersion: string, vspVersion: string): string => {
+  return `${igPackageId}.${igVersion}-${vspVersion}`
 }
 
 /**
