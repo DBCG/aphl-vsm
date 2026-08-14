@@ -164,6 +164,9 @@ const generateMainChangeText = (grouperListItem: any) => {
     return `${allConditionChangeTypes[0]} Conditions`
   } else if (grouperListItem?.priority?.operation) {
     return 'Updated Priority'
+  } else if (grouperListItem?.operation?.type === 'replace') {
+    // the grouper's compose reference to this leaf was repinned to a different version.
+    return 'Updated VS Version'
   } else {
     return '' // ?
   }
