@@ -1,6 +1,11 @@
 jest.mock('undici', () => ({ fetch: jest.fn(), Agent: jest.fn() }))
+// relative paths here: jest.config.js only maps the @/components and @/pages aliases
+jest.mock('../backend/clients/FhirCdrClient', () => ({ __esModule: true, default: { getInstance: () => ({ baseUrl: 'http://test/fhir' }) } }))
+jest.mock('./server/serverValueSetHelper', () => ({ fetchByCanonical: jest.fn() }))
 
-import { buildChangeRows, collector, mergeChanges } from './exportExcelHelper'
+import ExcelJS from 'exceljs'
+import { fetchByCanonical } from './server/serverValueSetHelper'
+import { buildChangeRows, collector, generateGrouperValuesetSheet, mergeChanges } from './exportExcelHelper'
 
 // Shapes mirror a $create-changelog Library page: relatedArtifacts entries carry the canonical in
 // `value`, and Page routes each operation type to oldData, newData, or (for replace) both.
@@ -134,5 +139,121 @@ describe('buildChangeRows', () => {
     )
 
     rows.flat().forEach((cell) => expect(typeof cell === 'string' || cell === '').toBe(true))
+  })
+})
+
+describe('generateGrouperValuesetSheet', () => {
+  const grouperVs = {
+    resourceType: 'ValueSet',
+    name: 'DiagnosisProblemTriggers',
+    status: 'active',
+    version: '3.6.2',
+    publisher: 'CSTE Steward',
+    purpose: 'Diagnoses or problems documented in a clinical record.',
+    description: 'Purpose: Clinical Focus',
+    identifier: [{ value: 'urn:oid:2.16.840.1.113762.1.4.1146.627' }]
+  }
+
+  // A repinned leaf: the grouper's compose reference moved to a new version. The leaf itself
+  // carries the replace and has no conditions, which used to emit no rows at all.
+  // Page records a replace on BOTH sides, so oldData carries the same leaf under its old name.
+  const pageWithRepinnedLeaf = (conditions: any[]) => ({
+    resourceType: 'ValueSet',
+    url: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc',
+    oldData: {
+      resourceType: 'ValueSet',
+      id: { value: '10' },
+      version: { value: '3.6.1' },
+      title: { value: 'Diagnosis_Problem Triggers for Public Health Reporting' },
+      leafValueSets: [
+        {
+          name: 'Diptheria Disorders',
+          memberOid: '2.16.840.1.113762.1.4.1146.6',
+          status: 'active',
+          priority: { value: 'routine' },
+          codeSystems: [{ name: 'SNOMEDCT', oid: '2.16.840.1.113883.6.96' }],
+          conditions,
+          operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]', newValue: 'dxtc|3.6.2' }
+        }
+      ],
+      codes: []
+    },
+    newData: {
+      resourceType: 'ValueSet',
+      id: { value: '10' },
+      version: { value: '3.6.2' },
+      title: { value: 'Diagnosis_Problem Triggers for Public Health Reporting' },
+      leafValueSets: [
+        {
+          // renamed between versions, as VSAC content does - lets the assertions tell the sides apart
+          name: 'DiphtheriaDisordersSNOMED',
+          memberOid: '2.16.840.1.113762.1.4.1146.6',
+          status: 'active',
+          priority: { value: 'routine' },
+          codeSystems: [{ name: 'SNOMEDCT', oid: '2.16.840.1.113883.6.96' }],
+          conditions,
+          operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]' }
+        }
+      ],
+      codes: []
+    }
+  })
+
+  const buildSheet = async (conditions: any[]) => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [pageWithRepinnedLeaf(conditions)])
+    return workbook.getWorksheet(grouperVs.name)!
+  }
+
+  const groupingRows = (sheet: ExcelJS.Worksheet) => {
+    const rows: any[][] = []
+    sheet.eachRow((row) => {
+      const values = (row.values as any[]).slice(1)
+      if (values[1] === '2.16.840.1.113762.1.4.1146.6') { rows.push(values) }
+    })
+    return rows
+  }
+
+  it('emits a Grouping List row for a leaf that changed but has no conditions', async () => {
+    const sheet = await buildSheet([])
+    const titles: string[] = []
+    sheet.eachRow((row) => { const v = (row.values as any[])[1]; if (typeof v === 'string') titles.push(v) })
+
+    expect(titles).toContain('Grouping List')
+    const rows = groupingRows(sheet)
+    // one row for the leaf, not one per side of the replace
+    expect(rows).toHaveLength(1)
+    // the Change column is last, and blank condition columns sit before it
+    expect(rows[0][rows[0].length - 1]).toBe('replace')
+    // newData's name, matching what the Value Sets table shows on screen
+    expect(rows[0][0]).toBe('DiphtheriaDisordersSNOMED')
+  })
+
+  it('keeps a leaf that only exists in oldData, so removals are not lost', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf([])
+    page.newData.leafValueSets = []
+    page.oldData.leafValueSets[0].operation = { type: 'delete', path: 'ValueSet.compose.include[0].valueSet[0]' }
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0][0]).toBe('Diptheria Disorders')
+    expect(rows[0][rows[0].length - 1]).toBe('delete')
+  })
+
+  it('still emits one row per condition when the leaf has them', async () => {
+    const sheet = await buildSheet([
+      { code: '840539006', display: 'COVID-19', system: 'http://snomed.info/sct', codeSystemName: 'SNOMEDCT', version: '2025-09' },
+      { code: '27836007', display: 'Pertussis', system: 'http://snomed.info/sct', codeSystemName: 'SNOMEDCT', version: '2025-09' }
+    ])
+
+    const rows = groupingRows(sheet)
+    expect(rows).toHaveLength(2)
+    expect(rows.map((r) => r[6])).toStrictEqual(['COVID-19', 'Pertussis'])
+    rows.forEach((r) => expect(r[r.length - 1]).toBe('replace'))
   })
 })
