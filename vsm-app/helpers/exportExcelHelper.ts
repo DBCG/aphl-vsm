@@ -482,10 +482,10 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       const fillCodeRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
-            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName, parentValueSetName } = rowValue
+            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName } = rowValue
             const status = startCase(grouperVs?.status || '')
             const remapInfo = status === 'Active' ? 'No' : 'Yes'
-            codeRows.push([parentValueSetName, memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])
+            codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])
           })
         })
       }
@@ -504,7 +504,6 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           headerRow: true,
           style: {},
           columns: [
-            { name: 'Name', filterButton: true },
             { name: 'Member OID', filterButton: true },
             { name: 'Code', filterButton: true },
             { name: 'Descriptor', filterButton: true },
