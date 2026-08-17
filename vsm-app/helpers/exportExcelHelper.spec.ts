@@ -230,6 +230,23 @@ describe('generateGrouperValuesetSheet', () => {
     expect(rows[0][0]).toBe('DiphtheriaDisordersSNOMED')
   })
 
+  // The same OID can carry different change types on each side e.g. a reordering diff emits a
+  // delete at one index and an insert at another. Only a replace is recorded on both sides, so
+  // only a replace may be collapsed; anything else has to survive the merge.
+  it('keeps both sides when the same OID has different old and new change types', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf([])
+    page.oldData.leafValueSets[0].operation = { type: 'delete', path: 'ValueSet.compose.include[0].valueSet[0]' }
+    page.newData.leafValueSets[0].operation = { type: 'insert', path: 'ValueSet.compose.include[0].valueSet[3]' }
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows).toHaveLength(2)
+    expect(rows.map((r) => r[r.length - 1]).sort()).toStrictEqual(['delete', 'insert'])
+  })
+
   it('keeps a leaf that only exists in oldData, so removals are not lost', async () => {
     ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
     const page: any = pageWithRepinnedLeaf([])

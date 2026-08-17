@@ -432,23 +432,22 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           })
         })
       }
-      // A replace is recorded on both sides of the page, merging old and new emits the same leaf
-      // twice, under its old name and under its new one. The UI reads newData and only
-      // backfills leaves that no longer exist there, do the same here.
-      const newLeafChanges = collector(page.newData?.leafValueSets)
+      // Page records a delete on oldData only and an insert on newData only, but a replace is on both
+      // so merging the two sides emits a replaced leaf twice, under its old and its new name. Drop
+      // only that duplicate half and leave every other change type to mergeChanges.
       const oldLeafChanges = collector(page.oldData?.leafValueSets)
-      const oidsInNewData = new Set(
-        Object.values(newLeafChanges)
-          .flat()
-          .map((leaf: any) => leaf?.memberOid)
+      const newLeafChanges = collector(page.newData?.leafValueSets)
+      const replacedOidsInNewData = new Set(
+        (newLeafChanges[OPERATION_TYPES.REPLACE] ?? []).map((leaf: any) => leaf?.memberOid)
       )
-      const leafValueSets: CollectedChangeMap = { ...newLeafChanges }
+      const oldLeafChangesWithoutDuplicateReplaces: CollectedChangeMap = {}
       Object.entries(oldLeafChanges).forEach(([change, leaves]) => {
-        const removedOnly = leaves?.filter((leaf: any) => !oidsInNewData.has(leaf?.memberOid)) ?? []
-        if (removedOnly.length) {
-          leafValueSets[change] = (leafValueSets[change] ?? []).concat(removedOnly)
-        }
+        oldLeafChangesWithoutDuplicateReplaces[change] =
+          change === OPERATION_TYPES.REPLACE
+            ? (leaves?.filter((leaf: any) => !replacedOidsInNewData.has(leaf?.memberOid)) ?? [])
+            : leaves
       })
+      const leafValueSets = mergeChanges(oldLeafChangesWithoutDuplicateReplaces, newLeafChanges)
       fillGroupingListTableRows(leafValueSets)
 
       if (groupingListRows.length > 0) {
