@@ -164,6 +164,11 @@ const generateMainChangeText = (grouperListItem: any) => {
     return `${allConditionChangeTypes[0]} Conditions`
   } else if (grouperListItem?.priority?.operation) {
     return 'Updated Priority'
+  } else if (grouperListItem?.operation?.type === 'replace') {
+    // Only an operation on a compose elements specific leaf's reference tells us the pin moved. A full
+    // compose element replace tags every leaf in the grouper, so fall back to a generic label
+    // there rather than claiming a version change.
+    return grouperListItem?.operation?.path?.includes('.valueSet') ? 'Updated VS Version' : 'Updated VS'
   } else {
     return '' // ?
   }

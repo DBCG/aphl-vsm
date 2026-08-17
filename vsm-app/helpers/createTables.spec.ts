@@ -332,4 +332,96 @@ describe('createTableData', () => {
     expect(result.grouperPages).toStrictEqual(expectedGrouperData)
   })
 
+  it('should label a leaf whose grouper reference was repinned to a new version', () => {
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+      title: 'Haemophilus influenzae',
+      status: 'active',
+      name: 'HaemophilusInfluenzae',
+      memberOid: '2.16.840.1.113762.1.4.1146.277',
+      priority: { value: 'routine' },
+      conditions: [],
+      codeSystems: [{ name: 'LOINC', oid: '2.16.840.1.113883.6.1' }]
+    }
+    const withRepin = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withRepin.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [{ ...leaf }]
+    grouperPage.newData.leafValueSets = [{
+      ...leaf,
+      operation: {
+        type: 'replace',
+        path: 'ValueSet.compose.include[0].valueSet[0]',
+        oldValue: `${leaf.url}|20240619`
+      }
+    }]
+
+    const result = createTableData(withRepin)
+    // @ts-ignore
+    const grouper = result.grouperPages[0]
+    const row = grouper.valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row).toBeDefined()
+    expect(row!.change).toBe('Updated VS Version')
+    // an empty change string is what hid the row, so the section has to know it changed
+    expect(grouper.hasChanges).toBe(true)
+  })
+
+  // A full compose replace tags every leaf in the grouper, not just the ones that moved, so
+  // the label must not claim a version change unless the operation is on the leaf's own reference.
+  it('should not claim a version change for a replace outside the leaf reference', () => {
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+      title: 'Haemophilus influenzae',
+      status: 'active',
+      name: 'HaemophilusInfluenzae',
+      memberOid: '2.16.840.1.113762.1.4.1146.277',
+      priority: { value: 'routine' },
+      conditions: [],
+      codeSystems: [],
+      operation: { type: 'replace', path: 'ValueSet.compose' }
+    }
+    const withComposeReplace = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withComposeReplace.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [{ ...leaf, operation: undefined }]
+    grouperPage.newData.leafValueSets = [leaf]
+
+    const result = createTableData(withComposeReplace)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.change).toBe('Updated VS')
+  })
+
+  // guards the ordering of the branch - a repin must not shadow the existing labels
+  it('should keep condition and priority labels ahead of the repin label', () => {
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+      title: 'Haemophilus influenzae',
+      status: 'active',
+      name: 'HaemophilusInfluenzae',
+      memberOid: '2.16.840.1.113762.1.4.1146.277',
+      priority: { value: 'routine' },
+      conditions: [{
+        code: '840539006',
+        codeSystemName: 'SNOMEDCT',
+        codeSystemOid: '2.16.840.1.113883.6.96',
+        display: 'COVID-19',
+        system: 'http://snomed.info/sct',
+        operation: { type: 'replace', path: 'ValueSet.useContext[0]' }
+      }],
+      codeSystems: [],
+      operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]' }
+    }
+    const withBoth = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withBoth.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [{ ...leaf, conditions: [], operation: undefined }]
+    grouperPage.newData.leafValueSets = [leaf]
+
+    const result = createTableData(withBoth)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.change).toBe('Update Conditions')
+  })
+
 })

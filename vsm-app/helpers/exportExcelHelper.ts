@@ -397,11 +397,10 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       })
 
       // ValueSet CodeSystem Changes
-      // TODO: fix this
       const groupingListRows: any[] = []
 
       const groupingTableStartRowCount = vsInfo.length + 3
-      let conditionsAdded = 0 // Every condition will be a row we need to increment for Code List table start
+      let groupingRowsAdded = 0 // Every grouping row shifts the Code List table start down
       const fillGroupingListTableRows = (data: any) => {
         Object.entries(data).forEach(([key, change]) => {
           // @ts-ignore todo: fix this
@@ -409,9 +408,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
             const { conditions, memberOid, name, codeSystems, status, priority } = rowValue
             const vsCodeSystemName = codeSystems?.[0]?.name || ''
             const vsCodeSystemOid = codeSystems?.[0]?.oid || ''
-            conditions?.forEach((condition: any) => {
-              conditionsAdded += 1 // Increment row count
-              const { code, system, version, display, codeSystemName } = condition
+            const pushGroupingRow = (condition?: any) => {
+              groupingRowsAdded += 1
               groupingListRows.push([
                 name,
                 memberOid,
@@ -419,19 +417,37 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
                 vsCodeSystemName,
                 vsCodeSystemOid,
                 status,
-                display,
-                code,
-                codeSystemName,
-                version,
+                condition?.display ?? '',
+                condition?.code ?? '',
+                condition?.codeSystemName ?? '',
+                condition?.version ?? '',
                 key
               ])
-            })
+            }
+            if (conditions?.length) {
+              conditions.forEach((condition: any) => pushGroupingRow(condition))
+            } else {
+              pushGroupingRow()
+            }
           })
         })
       }
-      const oldToMerge = collector(page.oldData?.leafValueSets)
-      const newToMerge = collector(page.newData?.leafValueSets)
-      const leafValueSets = mergeChanges(oldToMerge, newToMerge)
+      // Page records a delete on oldData only and an insert on newData only, but a replace is on both
+      // so merging the two sides emits a replaced leaf twice, under its old and its new name. Drop
+      // only that duplicate half and leave every other change type to mergeChanges.
+      const oldLeafChanges = collector(page.oldData?.leafValueSets)
+      const newLeafChanges = collector(page.newData?.leafValueSets)
+      const replacedOidsInNewData = new Set(
+        (newLeafChanges[OPERATION_TYPES.REPLACE] ?? []).map((leaf: any) => leaf?.memberOid)
+      )
+      const oldLeafChangesWithoutDuplicateReplaces: CollectedChangeMap = {}
+      Object.entries(oldLeafChanges).forEach(([change, leaves]) => {
+        oldLeafChangesWithoutDuplicateReplaces[change] =
+          change === OPERATION_TYPES.REPLACE
+            ? (leaves?.filter((leaf: any) => !replacedOidsInNewData.has(leaf?.memberOid)) ?? [])
+            : leaves
+      })
+      const leafValueSets = mergeChanges(oldLeafChangesWithoutDuplicateReplaces, newLeafChanges)
       fillGroupingListTableRows(leafValueSets)
 
       if (groupingListRows.length > 0) {
@@ -466,10 +482,10 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       const fillCodeRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
-            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName, parentValueSetName } = rowValue
+            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName } = rowValue
             const status = startCase(grouperVs?.status || '')
             const remapInfo = status === 'Active' ? 'No' : 'Yes'
-            codeRows.push([parentValueSetName, memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])
+            codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])
           })
         })
       }
@@ -477,7 +493,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
 
       fillCodeRows(dataCodes)
 
-      const codeRowsStartRowCount = groupingTableStartRowCount + conditionsAdded + 5
+      const codeRowsStartRowCount = groupingTableStartRowCount + groupingRowsAdded + 5
       if (codeRows.length > 0) {
         const tableTitle = groupingValueSetSheet.getCell(`A${codeRowsStartRowCount}`)
         tableTitle.value = 'Code List'
@@ -488,7 +504,6 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           headerRow: true,
           style: {},
           columns: [
-            { name: 'Name', filterButton: true },
             { name: 'Member OID', filterButton: true },
             { name: 'Code', filterButton: true },
             { name: 'Descriptor', filterButton: true },
