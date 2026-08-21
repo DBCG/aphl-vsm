@@ -153,7 +153,7 @@ const GrouperOverviewTable = ({ grouperLibId, program }: GrouperTable) => {
         sortable: true,
         wrap: true,
         maxWidth: '150px'
-      }/*,
+      },
       {
         name: 'Remove Group',
         maxWidth: '150px',
@@ -175,7 +175,7 @@ const GrouperOverviewTable = ({ grouperLibId, program }: GrouperTable) => {
             </ButtonContainer>
           )
         }
-      }*/
+      }
     ]
 
     return fields
