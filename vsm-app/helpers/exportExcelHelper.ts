@@ -4,6 +4,7 @@ import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { fetchByCanonical } from '@/helpers/server/serverValueSetHelper'
 import { startCase, times, uniq } from 'lodash'
 import { Agent, fetch as f } from 'undici'
+import {getReleaseLabel} from "@/helpers/libraryHelpers";
 interface CollectedChange extends ChangeValue {
   keyName: string
   change: string
@@ -250,7 +251,7 @@ const generateReadMeSheet = (
     ['RCTC OID', getOid(targetGrouperLibrary)],
     ['RCTC Definition Version', targetGrouperLibrary?.version],
     ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
-    ['RCTC Release Label', targetGrouperLibrary?.version]
+    ['RCTC Release Label', getReleaseLabel(targetGrouperLibrary)]
   ])
   readmeSheet.addRow([]) // Add new line
   const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
@@ -261,7 +262,7 @@ const generateReadMeSheet = (
     ['RCTC OID', getOid(sourceGrouperLibrary)],
     ['RCTC Definition Version', sourceGrouperLibrary?.version],
     ['RCTC Definition Effective Start Date', sourceGrouperLibrary?.effectivePeriod?.start],
-    ['RCTC Release Label', sourceGrouperLibrary?.version]
+    ['RCTC Release Label', getReleaseLabel(sourceGrouperLibrary)]
   ])
   const cellsToStyle = [currentVersion, previousVersion]
   cellsToStyle.forEach((rows) => {
