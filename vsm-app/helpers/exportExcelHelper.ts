@@ -134,34 +134,45 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string, input:
   return (changeJson!)
 }
 
-const extractConditions = (rootLibraryChangeDiff: any) => {
-  const conditions: string[] = []
+/**
+ * Conditions genuinely new to the program: declared by the target manifest and not by the source.
+ */
+const extractNewConditions = (
+  sourceLibrary: fhir4.Library | undefined,
+  targetLibrary: fhir4.Library | undefined
+) => {
+  const before = conditionsBySystemAndCode(sourceLibrary)
+  const after = conditionsBySystemAndCode(targetLibrary)
 
-  // Get all new conditions
-  rootLibraryChangeDiff.newData.relatedArtifacts.forEach((artifact: any) => {
-    // Handles case of new conditions being added
-    if ('operation' in artifact) {
-      const op = artifact.operation
-      if (op?.type === OPERATION_TYPES.INSERT && op?.newValue?.extension?.length) {
-        const conditionNames =
-          op.newValue.extension
-            ?.map((extension: any) => {
-              // only consider CRMI intendedUsageContext extensions that represent conditions (focus)
-              const isCrmi = extension?.url && extension.url.endsWith('crmi-intendedUsageContext')
-              const vuc = extension?.valueUsageContext
-              const isFocus = !!vuc && vuc?.code?.code === 'focus'
-              if (isCrmi && isFocus) {
-                return vuc?.valueCodeableConcept?.text
-              }
-              return undefined
-            })
-            ?.filter((i: any) => i) || []
-        conditions.push(...conditionNames)
+  return [...after.entries()].filter(([coding]) => !before.has(coding)).map(([, text]) => text)
+}
+
+/**
+ * Every condition a program manifest declares, keyed by coding rather than display text.
+ *
+ * Conditions live as `crmi-intendedUsageContext` extensions with a `focus` code on the manifest's
+ * relatedArtifact entries.
+ */
+const conditionsBySystemAndCode = (library: fhir4.Library | undefined): Map<string, string> => {
+  const found = new Map<string, string>()
+  library?.relatedArtifact?.forEach((relatedArtifact) => {
+    ;(relatedArtifact.extension ?? []).forEach((extension: any) => {
+      if (!extension?.url?.endsWith('crmi-intendedUsageContext')) {
+        return
       }
-    }
+      const usageContext = extension.valueUsageContext
+      if (usageContext?.code?.code !== 'focus') {
+        return
+      }
+      const concept = usageContext.valueCodeableConcept
+      const coding = concept?.coding?.[0]
+      if (!coding?.code) {
+        return
+      }
+      found.set(`${coding.system ?? ''}|${coding.code}`, concept?.text || coding?.display || '')
+    })
   })
-
-  return conditions
+  return found
 }
 
 /**
@@ -228,7 +239,7 @@ const generateReadMeSheet = (
   workbook: ExcelJS.Workbook,
   sourceGrouperLibrary: fhir4.Library,
   targetGrouperLibrary: fhir4.Library,
-  rootLibraryChangesJson: any
+  newConditions: string[]
 ) => {
   const readmeSheet = workbook.addWorksheet('Read Me')
   readmeSheet.getColumn('A').width = 30
@@ -288,14 +299,11 @@ const generateReadMeSheet = (
 
   readmeSheet.addRows([[], []]) // Add new line
   // New Conditions
-  let newConditions = extractConditions(rootLibraryChangesJson)
-
   if (newConditions.length > 0) {
     const conditionTitle = readmeSheet.addRow(['New Conditions'])
     conditionTitle.font = { bold: true }
-    newConditions = uniq(newConditions)
-    newConditions.forEach((newConditions: string) => {
-      readmeSheet.addRow([newConditions])
+    uniq(newConditions).forEach((condition: string) => {
+      readmeSheet.addRow([condition])
     })
   }
 }
@@ -532,5 +540,5 @@ export {
   generateGrouperValuesetSheet,
   autosortTable,
   changeLogDiffOperation,
-  extractConditions
+  extractNewConditions
 }
