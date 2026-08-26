@@ -256,7 +256,8 @@ const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
     return ({
       change: generateMainChangeText(gi),
       codeSystems: newCodeSystems,
-      name: gi.name,
+      // The title is more readable. Fall back to name when a leaf has no title.
+      name: gi.title || gi.name,
       oid: gi.memberOid,
       priority: gi.priority.value,
       conditionUpdates: generateConditionUpdates(gi.conditions, false)
@@ -271,7 +272,7 @@ const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
       return ({
         change: 'Removed VS',
         codeSystems: oldCodeSystems,
-        name: vsItem.name,
+        name: vsItem.title || vsItem.name,
         oid: vsItem.memberOid,
         priority: vsItem.priority.value,
         conditionUpdates: generateConditionUpdates(vsItem.conditions, true)

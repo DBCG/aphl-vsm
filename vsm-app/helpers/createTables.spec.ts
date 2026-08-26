@@ -392,6 +392,31 @@ describe('createTableData', () => {
     expect(row!.change).toBe('Updated VS')
   })
 
+  // The Value Sets table shows the leaf title, not the `name`.
+  it('should prefer the leaf title over the name token', () => {
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+      title: 'Haemophilus Influenzae (SNOMED)',
+      status: 'active',
+      name: 'HaemophilusInfluenzaeSNOMED',
+      memberOid: '2.16.840.1.113762.1.4.1146.277',
+      priority: { value: 'routine' },
+      conditions: [],
+      codeSystems: [],
+      operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]' }
+    }
+    const withTitle = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withTitle.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [{ ...leaf, operation: undefined }]
+    grouperPage.newData.leafValueSets = [leaf]
+
+    const result = createTableData(withTitle)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.name).toBe('Haemophilus Influenzae (SNOMED)')
+  })
+
   // guards the ordering of the branch - a repin must not shadow the existing labels
   it('should keep condition and priority labels ahead of the repin label', () => {
     const leaf = {

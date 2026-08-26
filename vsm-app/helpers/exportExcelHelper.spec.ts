@@ -247,6 +247,20 @@ describe('generateGrouperValuesetSheet', () => {
     expect(rows.map((r) => r[r.length - 1]).sort()).toStrictEqual(['delete', 'insert'])
   })
 
+  it('prefers the leaf title over the name in the Grouping List', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf([])
+    page.oldData.leafValueSets[0].title = 'Diphtheria Disorders (SNOMED)'
+    page.newData.leafValueSets[0].title = 'Diphtheria Disorders (SNOMED)'
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0][0]).toBe('Diphtheria Disorders (SNOMED)')
+  })
+
   it('keeps a leaf that only exists in oldData, so removals are not lost', async () => {
     ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
     const page: any = pageWithRepinnedLeaf([])
