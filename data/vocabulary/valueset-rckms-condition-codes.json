@@ -1223,7 +1223,7 @@
           "value": "Influenza-Associated Hospitalizations"
         } ]
       }, {
-        "code": "661761000124109 ",
+        "code": "661761000124109",
         "display": "Death associated with influenza (event)",
         "designation": [ {
           "use": {
