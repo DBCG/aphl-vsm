@@ -564,7 +564,8 @@ const idWithoutVersion = (url: string) => {
 }
 
 const getOid = (vs: fhir4.ValueSet| fhir4.Library) => {
-  let oid = vs?.identifier?.[0]?.value
+  // Strip leading 'urn:oid:' from the oid
+  let oid = vs?.identifier?.[0]?.value?.replace('urn:oid:', '')
   if (!oid && vs?.url) {
     // extract oid out of end of url
     const url = vs?.url.split('/').pop() as string

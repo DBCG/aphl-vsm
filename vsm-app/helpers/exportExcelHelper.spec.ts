@@ -5,7 +5,7 @@ jest.mock('./server/serverValueSetHelper', () => ({ fetchByCanonical: jest.fn() 
 
 import ExcelJS from 'exceljs'
 import { fetchByCanonical } from './server/serverValueSetHelper'
-import { buildChangeRows, collector, generateGrouperValuesetSheet, mergeChanges } from './exportExcelHelper'
+import { buildChangeRows, collector, extractNewConditions, generateGrouperValuesetSheet, mergeChanges } from './exportExcelHelper'
 
 // Shapes mirror a $create-changelog Library page: relatedArtifacts entries carry the canonical in
 // `value`, and Page routes each operation type to oldData, newData, or (for replace) both.
@@ -247,6 +247,20 @@ describe('generateGrouperValuesetSheet', () => {
     expect(rows.map((r) => r[r.length - 1]).sort()).toStrictEqual(['delete', 'insert'])
   })
 
+  it('prefers the leaf title over the name in the Grouping List', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf([])
+    page.oldData.leafValueSets[0].title = 'Diphtheria Disorders (SNOMED)'
+    page.newData.leafValueSets[0].title = 'Diphtheria Disorders (SNOMED)'
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0][0]).toBe('Diphtheria Disorders (SNOMED)')
+  })
+
   it('keeps a leaf that only exists in oldData, so removals are not lost', async () => {
     ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
     const page: any = pageWithRepinnedLeaf([])
@@ -272,5 +286,67 @@ describe('generateGrouperValuesetSheet', () => {
     expect(rows).toHaveLength(2)
     expect(rows.map((r) => r[6])).toStrictEqual(['COVID-19', 'Pertussis'])
     rows.forEach((r) => expect(r[r.length - 1]).toBe('replace'))
+  })
+})
+
+describe('extractNewConditions', () => {
+  // Shape taken from a real program manifest: conditions are crmi-intendedUsageContext extensions with
+  // a `focus` code on the relatedArtifact entries. The changelog's own conditions arrays are empty, so
+  // reading those reported nothing at all => read the Library resources instead.
+  const dependsOn = (canonical: string, ...conditions: { code: string; text: string }[]) => ({
+    type: 'depends-on',
+    resource: canonical,
+    extension: [
+      // a priority usage context sits alongside the conditions and must be ignored
+      {
+        url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+        valueUsageContext: {
+          code: { system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type', code: 'priority' },
+          valueCodeableConcept: { coding: [{ code: 'routine' }] }
+        }
+      },
+      ...conditions.map(({ code, text }) => ({
+        url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+        valueUsageContext: {
+          code: { system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type', code: 'focus' },
+          valueCodeableConcept: { coding: [{ system: 'http://snomed.info/sct', code }], text }
+        }
+      }))
+    ]
+  })
+  const manifest = (...entries: any[]) => ({ resourceType: 'Library', relatedArtifact: entries } as unknown as fhir4.Library)
+
+  const RSV_OLD = { code: '55735004', text: 'Respiratory syncytial virus infection (disorder)' }
+  const RSV_NEW = { code: '761671000124100', text: 'Death associated with respiratory syncytial virus infection (event)' }
+
+  it('reports only conditions the source manifest does not declare', () => {
+    const source = manifest(dependsOn('a|1', RSV_OLD))
+    const target = manifest(dependsOn('a|1', RSV_OLD), dependsOn('b|1', RSV_NEW))
+
+    expect(extractNewConditions(source, target)).toStrictEqual([RSV_NEW.text])
+  })
+
+  // The original bug: conditions of newly added value sets were reported as new conditions.
+  it('does not report an existing condition just because a value set carrying it was added', () => {
+    const existing = { code: '406575008', text: 'Infection caused by vancomycin resistant Enterococcus (disorder)' }
+    const source = manifest(dependsOn('a|1', existing))
+    const target = manifest(dependsOn('a|1', existing), dependsOn('b|1', existing))
+
+    expect(extractNewConditions(source, target)).toStrictEqual([])
+  })
+
+  it('treats a re-worded display as the same condition', () => {
+    const source = manifest(dependsOn('a|1', { code: '74351001', text: "Reye's syndrome (disorder)" }))
+    const target = manifest(dependsOn('a|1', { code: '74351001', text: "Reye's Syndrome (disorder)" }))
+
+    expect(extractNewConditions(source, target)).toStrictEqual([])
+  })
+
+  it('ignores non-focus usage contexts such as priority', () => {
+    expect(extractNewConditions(manifest(), manifest(dependsOn('a|1')))).toStrictEqual([])
+  })
+
+  it('reports everything when there is no source manifest', () => {
+    expect(extractNewConditions(undefined, manifest(dependsOn('a|1', RSV_NEW)))).toStrictEqual([RSV_NEW.text])
   })
 })
