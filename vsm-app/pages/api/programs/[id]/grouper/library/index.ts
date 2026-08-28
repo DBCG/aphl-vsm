@@ -30,6 +30,11 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
   const planDefinitionSearchParams: Record<string, string> = { url: planDefinitionCanonical[0] }
   if (planDefinitionCanonical.length > 1) {
     planDefinitionSearchParams.version = planDefinitionCanonical[1]
+  } else {
+    // fail - without the version param we can't guarantee we're checking against the correct PlanDefinition
+    const error = "Could not determine delete safety, PlanDefinition version could not be resolved: " + planDefinitionUrl
+    Logger.getLogger().error(error)
+    return res.status(400).send({ error })
   }
   const [grouperLib, manifestLib, grouperVs, planDefinitionSearch] = await
     Promise.all([
