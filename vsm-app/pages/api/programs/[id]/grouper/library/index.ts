@@ -5,6 +5,7 @@ import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import { splitCanonical } from '@/helpers/stringHelpers'
 import { artifactIsOwned } from '@/helpers/ownedHelpers'
+import { collectPlanDefinitionValueSetUrls } from '@/helpers/planDefinitionHelpers'
 
 interface EditingInfo {
   action: 'remove' | 'add'
@@ -25,14 +26,17 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
   const body = req.body
 
   const { grouperLibraryId: libraryId, editingInfo, manifestLibraryId, planDefinitionUrl }: DeleteGrouperRequest["body"] = body
-  const urlParameters: fhir4.Parameters = {
-    resourceType: "Parameters",
-    parameter: [{
-      name: "url",
-      valueUri: planDefinitionUrl
-    }]
+  const planDefinitionCanonical = splitCanonical(planDefinitionUrl || "")
+  const planDefinitionSearchParams: Record<string, string> = { url: planDefinitionCanonical[0] }
+  if (planDefinitionCanonical.length > 1) {
+    planDefinitionSearchParams.version = planDefinitionCanonical[1]
+  } else {
+    // fail - without the version param we can't guarantee we're checking against the correct PlanDefinition
+    const error = "Could not determine delete safety, PlanDefinition version could not be resolved: " + planDefinitionUrl
+    Logger.getLogger().error(error)
+    return res.status(400).send({ error })
   }
-  const [grouperLib, manifestLib, grouperVs, planDefinitionDataRequirements] = await
+  const [grouperLib, manifestLib, grouperVs, planDefinitionSearch] = await
     Promise.all([
       FhirClient.getInstance().read({
         resourceType: 'Library',
@@ -46,15 +50,23 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
         resourceType: 'ValueSet',
         id: editingInfo.vsId
       }) as Promise<fhir4.ValueSet>,
-      FhirClient.getInstance().operation({
-        name: "$data-requirements",
-        method: "POST",
-        input: JSON.stringify(urlParameters)
-      }) as Promise<fhir4.Library>,])
+      FhirClient.getInstance().search({
+        resourceType: 'PlanDefinition',
+        searchParams: planDefinitionSearchParams
+      }) as Promise<fhir4.Bundle>,])
 
-  const isGrouperPlanDefinitionDependency = planDefinitionDataRequirements.relatedArtifact?.some(ra => ra.resource && splitCanonical(ra.resource)[0] === editingInfo.vsCanonical)
-  if (isGrouperPlanDefinitionDependency) {
-    const error = "Grouper is dependency of: " + planDefinitionUrl
+  // Using $data-requirements denied every delete. Only the PlanDefinition's own references should block a delete:
+  // eRSD wires its trigger groupers into nested action inputs, those are what we must consider.
+  const planDefinition = planDefinitionSearch?.entry?.[0]?.resource as fhir4.PlanDefinition | undefined
+  if (!planDefinition) {
+    // fail closed - without the PlanDefinition we cannot tell a trigger grouper from a user's own
+    const error = "Could not determine delete safety, couldn't resolve PlanDefinition: " + planDefinitionUrl
+    Logger.getLogger().error(error)
+    return res.status(400).send({ error })
+  }
+
+  if (collectPlanDefinitionValueSetUrls(planDefinition).has(splitCanonical(editingInfo.vsCanonical)[0])) {
+    const error = "Grouper could not be deleted as it is referenced by: " + planDefinitionUrl
     Logger.getLogger().error(error)
     return res.status(400).send({ error })
   }
