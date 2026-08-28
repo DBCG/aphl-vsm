@@ -495,7 +495,9 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           value?.forEach((rowValue) => {
             const { display: descriptor, memberOid, version, codeValue: code, codeSystemName } = rowValue
             const status = startCase(grouperVs?.status || '')
-            const remapInfo = status === 'Active' ? 'No' : 'Yes'
+            // The manual change log leaves Remap Info empty on every row
+            // TODO:: is there a real value we can assign here?
+            const remapInfo = ''
             codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])
           })
         })
