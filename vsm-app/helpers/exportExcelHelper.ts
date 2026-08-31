@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { fetchByCanonical } from '@/helpers/server/serverValueSetHelper'
-import { startCase, times, uniq } from 'lodash'
+import { times, uniq } from 'lodash'
 import { Agent, fetch as f } from 'undici'
 import {getReleaseLabel} from "@/helpers/libraryHelpers";
 interface CollectedChange extends ChangeValue {
@@ -25,6 +25,8 @@ type ChangeValue = {
   system: string
   codeValue: string
   memberOid: string
+  // Code status as the expansion recorded it. Absent when the expansion never stated a status.
+  inactive?: boolean
 }
 
 type CollectedChangeMap = {
@@ -493,8 +495,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       const fillCodeRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
-            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName } = rowValue
-            const status = startCase(grouperVs?.status || '')
+            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName, inactive } = rowValue
+            const status = inactive == null ? '' : inactive ? 'Inactive' : 'Active'
             // The manual change log leaves Remap Info empty on every row
             // TODO:: is there a real value we can assign here?
             const remapInfo = ''

@@ -287,6 +287,79 @@ describe('generateGrouperValuesetSheet', () => {
     expect(rows.map((r) => r[6])).toStrictEqual(['COVID-19', 'Pertussis'])
     rows.forEach((r) => expect(r[r.length - 1]).toBe('replace'))
   })
+
+  // The Code List Status column used to print the grouper's status. It now comes from the code's own
+  // `inactive`, which the changelog carries per side off expansion.contains.
+  describe('Code List Status', () => {
+    const code = (codeValue: string, inactive?: boolean) => ({
+      codeValue,
+      display: 'Diphtheria',
+      memberOid: '2.16.840.1.113762.1.4.1146.422',
+      codeSystemName: 'SNOMEDCT',
+      version: '2026-03',
+      ...(inactive === undefined ? {} : { inactive }),
+      operation: { type: 'insert', path: 'ValueSet.expansion.contains[0]' }
+    })
+
+    const pageWithCodes = (codes: any[]) => ({
+      resourceType: 'ValueSet',
+      url: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc',
+      oldData: {
+        resourceType: 'ValueSet',
+        id: { value: '10' },
+        version: { value: '3.6.1' },
+        title: { value: 'Diagnosis_Problem Triggers for Public Health Reporting' },
+        leafValueSets: [],
+        codes: []
+      },
+      newData: {
+        resourceType: 'ValueSet',
+        id: { value: '10' },
+        version: { value: '3.6.2' },
+        title: { value: 'Diagnosis_Problem Triggers for Public Health Reporting' },
+        leafValueSets: [],
+        codes
+      }
+    })
+
+    // Code List columns: Member OID, Code, Descriptor, Code System, Version, Status, RemapInfo, Change
+    const STATUS = 5
+
+    const statusFor = async (codes: any[]) => {
+      ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+      const workbook = new ExcelJS.Workbook()
+      await generateGrouperValuesetSheet(workbook, [pageWithCodes(codes)])
+      const sheet = workbook.getWorksheet(grouperVs.name)!
+      const byCode: Record<string, any> = {}
+      sheet.eachRow((row) => {
+        const values = (row.values as any[]).slice(1)
+        if (values[0] === '2.16.840.1.113762.1.4.1146.422') {
+          byCode[values[1]] = values[STATUS]
+        }
+      })
+      return byCode
+    }
+
+    it('reads Inactive from the code', async () => {
+      expect(await statusFor([code('13570003', true)])).toStrictEqual({ '13570003': 'Inactive' })
+    })
+
+    it('reads Active when the code is not retired', async () => {
+      expect(await statusFor([code('14188007', false)])).toStrictEqual({ '14188007': 'Active' })
+    })
+
+    it('leaves the status blank when the changelog states none', async () => {
+      expect(await statusFor([code('23022004')])).toStrictEqual({ '23022004': '' })
+    })
+
+    it('reports each code its own status within one grouper', async () => {
+      expect(await statusFor([code('13570003', true), code('14188007', false), code('23022004')])).toStrictEqual({
+        '13570003': 'Inactive',
+        '14188007': 'Active',
+        '23022004': ''
+      })
+    })
+  })
 })
 
 describe('extractNewConditions', () => {
