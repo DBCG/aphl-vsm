@@ -276,16 +276,27 @@ describe('generateGrouperValuesetSheet', () => {
     expect(rows[0][rows[0].length - 1]).toBe('delete')
   })
 
+  // Shape taken from the changelog JSON: a condition is a ValueSetChild.Code, so its code is
+  // serialised as `codeValue`.
+  const conditions = [
+    { codeValue: '840539006', display: 'COVID-19', system: 'http://snomed.info/sct', codeSystemName: 'SNOMEDCT' },
+    { codeValue: '27836007', display: 'Pertussis', system: 'http://snomed.info/sct', codeSystemName: 'SNOMEDCT' }
+  ]
+
   it('still emits one row per condition when the leaf has them', async () => {
-    const sheet = await buildSheet([
-      { code: '840539006', display: 'COVID-19', system: 'http://snomed.info/sct', codeSystemName: 'SNOMEDCT', version: '2025-09' },
-      { code: '27836007', display: 'Pertussis', system: 'http://snomed.info/sct', codeSystemName: 'SNOMEDCT', version: '2025-09' }
-    ])
+    const sheet = await buildSheet(conditions)
 
     const rows = groupingRows(sheet)
     expect(rows).toHaveLength(2)
     expect(rows.map((r) => r[6])).toStrictEqual(['COVID-19', 'Pertussis'])
     rows.forEach((r) => expect(r[r.length - 1]).toBe('replace'))
+  })
+  
+  it('reads a condition code from codeValue, which is what the changelog carries', async () => {
+    const rows = groupingRows(await buildSheet(conditions))
+
+    expect(rows.map((r) => r[7])).toStrictEqual(['840539006', '27836007'])
+    expect(rows.map((r) => r[8])).toStrictEqual(['SNOMEDCT', 'SNOMEDCT'])
   })
 
   // The Code List Status column used to print the grouper's status. It now comes from the code's own

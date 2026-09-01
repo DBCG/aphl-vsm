@@ -431,7 +431,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
                 vsCodeSystemOid,
                 status,
                 condition?.display ?? '',
-                condition?.code ?? '',
+                condition?.codeValue ?? '',
                 condition?.codeSystemName ?? '',
                 condition?.version ?? '',
                 key
