@@ -120,7 +120,11 @@ const ToggleShowNoChange = ({ handleShowUnchanged }: { handleShowUnchanged: (che
   )
 }
 
-const createStyles = (style: React.CSSProperties, conditionItem: ConditionUpdate | CodeSystemItem) => {
+const createStyles = (style: React.CSSProperties, conditionItem?: ConditionUpdate | CodeSystemItem) => {
+  // A missing entry must not take the whole table down
+  if (!conditionItem) {
+    return style
+  }
   let colorOverride = {}
   if (conditionItem.hasOwnProperty('conditionChange')) {
     colorOverride = generateConditionColor(conditionItem as ConditionUpdate)

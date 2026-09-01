@@ -448,5 +448,73 @@ describe('createTableData', () => {
 
     expect(row!.change).toBe('Update Conditions')
   })
+  
+  describe('condition updates', () => {
+    const conditionUpdatesFor = (conditions: any[]) => {
+      const leaf = {
+        url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+        title: 'Haemophilus influenzae',
+        status: 'active',
+        name: 'HaemophilusInfluenzae',
+        memberOid: '2.16.840.1.113762.1.4.1146.277',
+        priority: { value: 'routine' },
+        conditions,
+        codeSystems: [],
+        operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]' }
+      }
+      const withConditions = JSON.parse(JSON.stringify(changelog))
+      const grouperPage = withConditions.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+      grouperPage.oldData.leafValueSets = [{ ...leaf, conditions: [], operation: undefined }]
+      grouperPage.newData.leafValueSets = [leaf]
+
+      const result = createTableData(withConditions)
+      // @ts-ignore
+      const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+      return row!.conditionUpdates
+    }
+
+    const condition = (operation?: any) => ({
+      codeValue: '840539006',
+      display: 'COVID-19',
+      system: 'http://snomed.info/sct',
+      version: '2025-09',
+      operation
+    })
+
+    it('never yields an undefined entry, whatever the operation looks like', () => {
+      const updates = conditionUpdatesFor([
+        condition({ type: 'insert', path: 'condition' }),
+        condition({ type: 'delete', path: 'condition' }),
+        condition({ type: 'replace', path: 'something.unrecognised' }),
+        condition({ type: 'not-a-real-type', path: '' }),
+        condition(undefined)
+      ])
+
+      expect(updates).toHaveLength(5)
+      updates.forEach((update: any) => expect(update).toBeDefined())
+    })
+
+    it('reads the condition code from codeValue, which is what the changelog carries', () => {
+      const [update] = conditionUpdatesFor([condition({ type: 'insert', path: 'condition' })])
+
+      expect(update.conditionCode).toBe('840539006')
+      expect(update.conditionSystem).toBe('http://snomed.info/sct')
+      expect(update.conditionName).toBe('COVID-19')
+    })
+
+    it('labels a change from the operation type, not from the path', () => {
+      const updates = conditionUpdatesFor([
+        condition({ type: 'insert', path: 'condition' }),
+        condition({ type: 'delete', path: 'condition' }),
+        condition(undefined)
+      ])
+
+      expect(updates.map((u: any) => u.conditionChange)).toStrictEqual([
+        'Add condition',
+        'Remove condition',
+        undefined
+      ])
+    })
+  })
 
 })

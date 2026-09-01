@@ -177,58 +177,28 @@ const generateMainChangeText = (grouperListItem: any) => {
 // conditions can be added, removed, or updated
 // could be updates to code, text, system
 // might need to combine multiple "replace" fields
+// The words the change text starts with drive the row colour - see generateConditionColor.
+const CONDITION_CHANGE_TEXT: Record<string, string> = {
+  insert: 'Add condition',
+  delete: 'Remove condition',
+  replace: 'Replace condition'
+}
+
+/**
+ * One renderable row per condition.
+ *
+ * @param hideConditionChangeText for a value set removed outright, where its own "Removed VS" already
+ *   says it and repeating the news per condition adds nothing
+ */
 const generateConditionUpdates = (conditionsList: any[], hideConditionChangeText: boolean) => {
   if (!conditionsList) return []
-  return conditionsList?.map(li => {
-    // if an operation occurred at all, return details
-    if (li.operation) {
-      // insert, also handle text field... thi
-      if (li.operation.type === 'replace' && li.operation.path.endsWith('.code')) {
-        return ({
-          conditionChange: `Replace condition code ${li.operation.oldValue} with ${li.code}`,
-          conditionName: undefined, // isn't currently being passed through...
-          conditionCodeSystemVersion: undefined, // same here
-          conditionCode: li.code,
-          conditionSystem: li.system,
-        })
-      } else if (li.operation.type === 'replace' && li.operation.path.endsWith('.text')) {
-        return ({
-          conditionChange: `Replace condition text ${li.operation.oldValue} with ${li.text}`,
-          conditionName: undefined, // isn't currently being passed through...
-          conditionCodeSystemVersion: undefined, // same here
-          conditionCode: li.code,
-          conditionSystem: li.system,
-        })
-      } else if (li.operation.type === 'insert' && li.operation.path.endsWith('.extension')) {
-        return ({
-          conditionChange: 'Add condition',
-          conditionName: li?.operation?.newValue?.text, // is the text field, not name...
-          conditionCodeSystemVersion: undefined, // same here
-          conditionCode: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.code,
-          conditionSystem: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.system,
-        })
-      } else if (li.operation.type === 'delete') {
-        const splitIndex = li.operation.path.lastIndexOf('.')
-        const itemToDelete = splitIndex ? li?.operation?.path?.slice?.(splitIndex + 1) : null
-        return ({
-          conditionChange: hideConditionChangeText ? '' : `Delete field: ${itemToDelete}`,
-          conditionName: undefined, // isn't currently being passed through...
-          conditionCodeSystemVersion: undefined, // same here
-          conditionCode: li.code,
-          conditionSystem: li.system,
-        })
-      }
-      // if no operation occurred, just return condition info
-    } else {
-      return ({
-        conditionChange: undefined,
-        conditionName: undefined,
-        conditionCodeSystemVersion: undefined,
-        conditionSystem: li.system,
-        conditionCode: li.code
-      })
-    }
-  })
+  return conditionsList.map(li => ({
+    conditionChange: hideConditionChangeText ? '' : CONDITION_CHANGE_TEXT[li?.operation?.type],
+    conditionName: li?.display,
+    conditionCodeSystemVersion: li?.version,
+    conditionCode: li?.codeValue,
+    conditionSystem: li?.system
+  }))
 }
 
 const uniqueCodeSystems = (csArray: { name: string, oid: string }[]): { name: string, oid: string }[] => (uniqWith(
@@ -242,6 +212,15 @@ const uniqueCodeSystems = (csArray: { name: string, oid: string }[]): { name: st
 // need title in grouperlist for vs table
 // need code system for valueset
 // need status for code system (e.g. published?)
+type ValueSetRow = {
+  change: string
+  codeSystems: { name: string, oid: string }[]
+  name: any
+  oid: any
+  priority: any
+  conditionUpdates: ReturnType<typeof generateConditionUpdates>
+}
+
 // need to always include text on conditions items
 const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
   // doing this here because it's not explicitly noted in the changelog
@@ -251,7 +230,7 @@ const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
   const deletedLeafIds = allOldLeafIds.filter(id => !newLeafIds.includes(id))
   const deletedValueSets = grouperPage?.oldData?.leafValueSets?.filter(vs => deletedLeafIds?.includes(vs?.memberOid)) || []
 
-  let newData: { change: string; codeSystems: { name: string; oid: string }[]; name: any; oid: any; priority: any; conditionUpdates: ({ conditionChange: string; conditionName: any; conditionCodeSystemVersion: undefined; conditionCode: any; conditionSystem: any } | { conditionChange: undefined; conditionName: undefined; conditionCodeSystemVersion: undefined; conditionSystem: any; conditionCode: any } | undefined)[] }[] = grouperPage?.newData?.leafValueSets?.map(gi => {
+  let newData: ValueSetRow[] = grouperPage?.newData?.leafValueSets?.map(gi => {
     const newCodeSystems = uniqueCodeSystems(gi?.codeSystems || [])
     return ({
       change: generateMainChangeText(gi),
