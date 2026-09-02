@@ -177,6 +177,97 @@ const conditionsBySystemAndCode = (library: fhir4.Library | undefined): Map<stri
   return found
 }
 
+type GroupingLeafCondition = {
+  system?: string
+  codeValue?: string
+  display?: string
+  version?: string
+  codeSystemName?: string
+  operation?: { type: string }
+}
+
+type GroupingLeaf = {
+  memberOid?: string
+  name?: string
+  title?: string
+  status?: string
+  codeSystems?: { name?: string; oid?: string }[]
+  conditions?: GroupingLeafCondition[]
+  priority?: { value?: string; operation?: { type: string } }
+  operation?: { type: string }
+}
+
+/**
+ * The Grouping List: one row per changed leaf value set, or one per condition where it has them.
+ *
+ * Build from `leafValueSets` directly rather than through `collector`. The walker treated every
+ * marked condition and marked priority like a renderable change. Those were collected as rows of their
+ * own and rendered blank, except for the Change column. Reading the leaves means such a row cannot be
+ * constructed in the first place.
+ */
+const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: GroupingLeaf[] = []) => {
+  const conditionKey = (condition: GroupingLeafCondition) => `${condition?.system ?? ''}|${condition?.codeValue ?? ''}`
+
+  // A condition is marked on the side that states it, so a removed one exists only in oldData.
+  const conditionsFor = (newLeaf: GroupingLeaf, oldLeaf?: GroupingLeaf) => {
+    const kept = newLeaf.conditions ?? []
+    const keptKeys = new Set(kept.map(conditionKey))
+    const removed = (oldLeaf?.conditions ?? []).filter((c) => c?.operation && !keptKeys.has(conditionKey(c)))
+    return [...kept, ...removed]
+  }
+
+  const changeOf = (leaf: GroupingLeaf | undefined, conditions: GroupingLeafCondition[]) =>
+    leaf?.operation?.type ??
+    conditions.find((condition) => condition?.operation?.type)?.operation?.type ??
+    leaf?.priority?.operation?.type
+
+  const rows: any[][] = []
+  const pushRowsFor = (leaf: GroupingLeaf, conditions: GroupingLeafCondition[], change: string) => {
+    const emit = (condition?: GroupingLeafCondition) =>
+      rows.push([
+        // Prefer readable title to name when present
+        leaf.title || leaf.name,
+        leaf.memberOid,
+        leaf.priority?.value,
+        leaf.codeSystems?.[0]?.name ?? '',
+        leaf.codeSystems?.[0]?.oid ?? '',
+        leaf.status,
+        condition?.display ?? '',
+        condition?.codeValue ?? '',
+        condition?.codeSystemName ?? '',
+        condition?.version ?? '',
+        // a condition that moved says so for itself; the rest inherit the leaf's change
+        condition?.operation?.type ?? change
+      ])
+    if (conditions.length) {
+      conditions.forEach(emit)
+    } else {
+      emit()
+    }
+  }
+
+  const oldByOid = new Map(oldLeaves.map((leaf) => [leaf.memberOid, leaf]))
+  const newOids = new Set(newLeaves.map((leaf) => leaf.memberOid))
+
+  newLeaves.forEach((leaf) => {
+    const oldLeaf = oldByOid.get(leaf.memberOid)
+    const conditions = conditionsFor(leaf, oldLeaf)
+    // a replace is recorded on both sides, so read the old side too when this one says nothing
+    const change = changeOf(leaf, conditions) ?? changeOf(oldLeaf, oldLeaf?.conditions ?? [])
+    if (change) {
+      pushRowsFor(leaf, conditions, change)
+    }
+  })
+
+  // A leaf whose OID is absent from the new release was removed. create-changelog does not always
+  // record one, and it records a positional delete on leaves that in fact survived.
+  oldLeaves
+    .filter((leaf) => !newOids.has(leaf.memberOid))
+    .forEach((leaf) => pushRowsFor(leaf, leaf.conditions ?? [], OPERATION_TYPES.DELETE))
+
+  return rows
+}
+
 /**
  * Turns a merged change map into [Change, Field Name, Old Value, New Value] rows.
  *
@@ -408,60 +499,10 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       })
 
       // ValueSet CodeSystem Changes
-      const groupingListRows: any[] = []
+      const groupingListRows = buildGroupingListRows(page.oldData?.leafValueSets, page.newData?.leafValueSets)
 
       const groupingTableStartRowCount = vsInfo.length + 3
-      let groupingRowsAdded = 0 // Every grouping row shifts the Code List table start down
-      const fillGroupingListTableRows = (data: any) => {
-        Object.entries(data).forEach(([key, change]) => {
-          // @ts-ignore todo: fix this
-          change?.forEach((rowValue) => {
-            const { conditions, memberOid, name, title, codeSystems, status, priority } = rowValue
-            // Prefer readable title to name when present
-            const displayName = title || name
-            const vsCodeSystemName = codeSystems?.[0]?.name || ''
-            const vsCodeSystemOid = codeSystems?.[0]?.oid || ''
-            const pushGroupingRow = (condition?: any) => {
-              groupingRowsAdded += 1
-              groupingListRows.push([
-                displayName,
-                memberOid,
-                priority?.value,
-                vsCodeSystemName,
-                vsCodeSystemOid,
-                status,
-                condition?.display ?? '',
-                condition?.codeValue ?? '',
-                condition?.codeSystemName ?? '',
-                condition?.version ?? '',
-                key
-              ])
-            }
-            if (conditions?.length) {
-              conditions.forEach((condition: any) => pushGroupingRow(condition))
-            } else {
-              pushGroupingRow()
-            }
-          })
-        })
-      }
-      // Page records a delete on oldData only and an insert on newData only, but a replace is on both
-      // so merging the two sides emits a replaced leaf twice, under its old and its new name. Drop
-      // only that duplicate half and leave every other change type to mergeChanges.
-      const oldLeafChanges = collector(page.oldData?.leafValueSets)
-      const newLeafChanges = collector(page.newData?.leafValueSets)
-      const replacedOidsInNewData = new Set(
-        (newLeafChanges[OPERATION_TYPES.REPLACE] ?? []).map((leaf: any) => leaf?.memberOid)
-      )
-      const oldLeafChangesWithoutDuplicateReplaces: CollectedChangeMap = {}
-      Object.entries(oldLeafChanges).forEach(([change, leaves]) => {
-        oldLeafChangesWithoutDuplicateReplaces[change] =
-          change === OPERATION_TYPES.REPLACE
-            ? (leaves?.filter((leaf: any) => !replacedOidsInNewData.has(leaf?.memberOid)) ?? [])
-            : leaves
-      })
-      const leafValueSets = mergeChanges(oldLeafChangesWithoutDuplicateReplaces, newLeafChanges)
-      fillGroupingListTableRows(leafValueSets)
+      const groupingRowsAdded = groupingListRows.length // Every grouping row shifts the Code List table start down
 
       if (groupingListRows.length > 0) {
         const groungListTableTitle = groupingValueSetSheet.getCell(`A${groupingTableStartRowCount}`)

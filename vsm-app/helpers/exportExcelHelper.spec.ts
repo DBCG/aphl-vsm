@@ -230,10 +230,10 @@ describe('generateGrouperValuesetSheet', () => {
     expect(rows[0][0]).toBe('DiphtheriaDisordersSNOMED')
   })
 
-  // The same OID can carry different change types on each side e.g. a reordering diff emits a
-  // delete at one index and an insert at another. Only a replace is recorded on both sides, so
-  // only a replace may be collapsed; anything else has to survive the merge.
-  it('keeps both sides when the same OID has different old and new change types', async () => {
+  // The same OID can carry different change types on each side: a reordering diff emits a delete at
+  // one index and an insert at another for a leaf that never left the grouper. This used to assert
+  // both halves survived as separate rows, which reported one leaf as both removed and added.
+  it('reports one row for a leaf whose OID carries a different change on each side', async () => {
     ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
     const page: any = pageWithRepinnedLeaf([])
     page.oldData.leafValueSets[0].operation = { type: 'delete', path: 'ValueSet.compose.include[0].valueSet[0]' }
@@ -243,8 +243,8 @@ describe('generateGrouperValuesetSheet', () => {
     await generateGrouperValuesetSheet(workbook, [page])
     const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
 
-    expect(rows).toHaveLength(2)
-    expect(rows.map((r) => r[r.length - 1]).sort()).toStrictEqual(['delete', 'insert'])
+    expect(rows).toHaveLength(1)
+    expect(rows[0][rows[0].length - 1]).toBe('insert')
   })
 
   it('prefers the leaf title over the name in the Grouping List', async () => {
@@ -297,6 +297,111 @@ describe('generateGrouperValuesetSheet', () => {
 
     expect(rows.map((r) => r[7])).toStrictEqual(['840539006', '27836007'])
     expect(rows.map((r) => r[8])).toStrictEqual(['SNOMEDCT', 'SNOMEDCT'])
+  })
+
+  // Every row in the table, not only the ones a leaf OID matches, so a row built from something
+  // other than a leaf cannot hide from this.
+  const allGroupingRows = (sheet: ExcelJS.Worksheet) => {
+    const rows: any[][] = []
+    let inTable = false
+    sheet.eachRow((row) => {
+      const values = (row.values as any[]).slice(1)
+      if (values[0] === 'Grouping List') { inTable = true; return }
+      if (values[0] === 'Name' && values[1] === 'OID') { return } // header
+      if (values[0] === 'Code List') { inTable = false; return }
+      if (inTable) { rows.push(values) }
+    })
+    return rows
+  }
+
+  // Collector walked into any leaf without an `operation` key and into any leaf carrying a replace.
+  // A marked condition and a marked priority each satisfied its "renderable change" test, so both were collected as
+  // rows of their own and rendered with no Name, OID, Code System, Status or Priority.
+  it('never emits a row that is blank except for the Change column', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const marked = { type: 'insert', path: 'condition' }
+    const page: any = pageWithRepinnedLeaf([{ ...conditions[0], operation: marked }])
+    page.newData.leafValueSets[0].priority = { value: 'emergent', operation: { type: 'replace', path: 'priority' } }
+    // a second leaf that is otherwise untouched
+    page.newData.leafValueSets.push({
+      name: 'Pertussis Disorders',
+      memberOid: '2.16.840.1.113762.1.4.1146.7',
+      status: 'active',
+      priority: { value: 'routine', operation: { type: 'replace', path: 'priority' } },
+      codeSystems: [{ name: 'SNOMEDCT', oid: '2.16.840.1.113883.6.96' }],
+      conditions: [{ ...conditions[1], operation: marked }]
+    })
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = allGroupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows.length).toBeGreaterThan(0)
+    rows.forEach((row) => {
+      expect(row[0]).toBeTruthy() // Name
+      expect(row[1]).toBeTruthy() // OID
+    })
+  })
+
+  it('keeps a leaf whose only change is a condition', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf([{ ...conditions[0], operation: { type: 'insert', path: 'condition' } }])
+    delete page.oldData.leafValueSets[0].operation
+    delete page.newData.leafValueSets[0].operation
+    page.oldData.leafValueSets[0].conditions = []
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0][6]).toBe('COVID-19')
+    expect(rows[0][rows[0].length - 1]).toBe('insert')
+  })
+
+  // A condition the new release dropped is marked on oldData only, so reading the new side alone
+  // would lose both the row and the condition's detail columns.
+  it('reports a condition removed from a leaf that survived', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf([])
+    delete page.oldData.leafValueSets[0].operation
+    delete page.newData.leafValueSets[0].operation
+    page.oldData.leafValueSets[0].conditions = [{ ...conditions[0], operation: { type: 'delete', path: 'condition' } }]
+    page.newData.leafValueSets[0].conditions = []
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0][6]).toBe('COVID-19')
+    expect(rows[0][rows[0].length - 1]).toBe('delete')
+  })
+
+  // The Change column is per row, so a condition that moved reports its own change rather than
+  // inheriting the leaf's. Otherwise a repinned leaf reports every one of its conditions as
+  // "replace", including the one that was actually added.
+  it('gives a moved condition its own change and the rest the leafs', async () => {
+    const sheet = await buildSheet([{ ...conditions[0], operation: { type: 'insert', path: 'condition' } }, conditions[1]])
+    const rows = groupingRows(sheet)
+
+    expect(rows.map((r) => [r[6], r[r.length - 1]])).toStrictEqual([
+      ['COVID-19', 'insert'],
+      ['Pertussis', 'replace']
+    ])
+  })
+
+  it('emits no rows for a leaf nothing changed on', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf(conditions)
+    delete page.oldData.leafValueSets[0].operation
+    delete page.newData.leafValueSets[0].operation
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows).toStrictEqual([])
   })
 
   // The Code List Status column used to print the grouper's status. It now comes from the code's own
