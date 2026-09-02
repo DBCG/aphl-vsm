@@ -417,8 +417,10 @@ describe('createTableData', () => {
     expect(row!.name).toBe('Haemophilus Influenzae (SNOMED)')
   })
 
-  // guards the ordering of the branch - a repin must not shadow the existing labels
-  it('should keep condition and priority labels ahead of the repin label', () => {
+  // Guards the ordering of the branch. This used to assert the opposite (conditions ahead of the
+  // repin), which meant a leaf that both moved its pin and changed a condition reported only the
+  // condition.
+  it('should report the leaf repin ahead of a condition change', () => {
     const leaf = {
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
       title: 'Haemophilus influenzae',
@@ -446,7 +448,39 @@ describe('createTableData', () => {
     // @ts-ignore
     const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
-    expect(row!.change).toBe('Update Conditions')
+    expect(row!.change).toBe('Updated VS Version')
+    // the condition change is still reported, in the row's own condition columns
+    expect(row!.conditionUpdates).toStrictEqual([
+      expect.objectContaining({ conditionChange: 'Replace condition', conditionName: 'COVID-19' })
+    ])
+  })
+
+  it('should still report a condition change on a leaf whose pin did not move', () => {
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+      title: 'Haemophilus influenzae',
+      status: 'active',
+      name: 'HaemophilusInfluenzae',
+      memberOid: '2.16.840.1.113762.1.4.1146.277',
+      priority: { value: 'routine' },
+      conditions: [{
+        codeValue: '840539006',
+        display: 'COVID-19',
+        system: 'http://snomed.info/sct',
+        operation: { type: 'insert', path: 'condition' }
+      }],
+      codeSystems: []
+    }
+    const withCondition = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withCondition.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [{ ...leaf, conditions: [] }]
+    grouperPage.newData.leafValueSets = [leaf]
+
+    const result = createTableData(withCondition)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.change).toBe('insert Conditions')
   })
   
   describe('condition updates', () => {

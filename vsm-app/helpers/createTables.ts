@@ -158,17 +158,16 @@ const generateMainChangeText = (grouperListItem: any) => {
     return 'Added VS'
   } else if (grouperListItem?.operation?.type === 'delete') {
     return 'Removed VS'
+  } else if (grouperListItem?.operation?.type === 'replace') {
+    // The leaf's own change is reported ahead of a condition or priority change, which already
+    // show in the row's own Condition columns.
+    return grouperListItem?.operation?.path?.includes('.valueSet') ? 'Updated VS Version' : 'Updated VS'
   } else if (allConditionChangeTypes.find((c: any) => c === 'replace')) {
     return 'Update Conditions'
   } else if (allConditionChangeTypes.length == 1) {
     return `${allConditionChangeTypes[0]} Conditions`
   } else if (grouperListItem?.priority?.operation) {
     return 'Updated Priority'
-  } else if (grouperListItem?.operation?.type === 'replace') {
-    // Only an operation on a compose elements specific leaf's reference tells us the pin moved. A full
-    // compose element replace tags every leaf in the grouper, so fall back to a generic label
-    // there rather than claiming a version change.
-    return grouperListItem?.operation?.path?.includes('.valueSet') ? 'Updated VS Version' : 'Updated VS'
   } else {
     return '' // ?
   }
