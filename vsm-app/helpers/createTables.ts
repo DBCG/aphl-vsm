@@ -279,30 +279,17 @@ const formatCodeData = ({ codeItems, defaultChange }: FormatCodeItems) => {
 }
 
 const generateCodeChangesTable = (grouperPage: GrouperVsPage) => {
-  const newCodes = grouperPage?.newData?.codes || []
-  const oldCodes = grouperPage?.oldData?.codes || []
-  let codeChangeData = formatCodeData({ codeItems: newCodes });
+  // create-changelog marks a deleted code on the old side, keyed by member value set, system and code.
+  // This used to derive deletions here by matching the two sides on codeValue + system + version, which
+  // ignored the member value set - so a code dropped from one referenced value set was suppressed
+  // whenever another value set in the grouper still carried it.
+  const deletedCodes = (grouperPage?.oldData?.codes || []).filter((code) => code?.operation?.type === 'delete')
 
-  const deletedCodes = oldCodes?.filter((oldCodeItem) => {
-    const hasMatchInNewCodes: boolean = Boolean(
-      newCodes?.find((newCodeItem) => {
-        return (
-          newCodeItem?.codeValue === oldCodeItem?.codeValue &&
-          newCodeItem?.system === oldCodeItem?.system &&
-          newCodeItem?.version === oldCodeItem?.version
-        );
-      })
-    );
-    return !hasMatchInNewCodes
-  }) || [];
-
-  // deletions are not tracked by create-changelog, so do manually:
-  if (deletedCodes.length) {
-    const formattedDeletions = formatCodeData({ codeItems: deletedCodes, defaultChange: 'Deleted' })
-    codeChangeData = [...codeChangeData, ...formattedDeletions]
-  }
-
-  return codeChangeData
+  return [
+    ...formatCodeData({ codeItems: grouperPage?.newData?.codes || [] }),
+    // 'Deleted' rather than the operation's own 'delete': GrouperCodesTable styles the row on this text
+    ...formatCodeData({ codeItems: deletedCodes, defaultChange: 'Deleted' })
+  ]
 }
 
 const generateGrouperPages = (allGrouperPages: GrouperVsPage[]) => {
