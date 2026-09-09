@@ -36,7 +36,8 @@ type CollectedChangeMap = {
 const OPERATION_TYPES = {
   INSERT: 'insert',
   DELETE: 'delete',
-  REPLACE: 'replace'
+  REPLACE: 'replace',
+  INACTIVE: 'inactive'
 }
 
 // Recursively walks a changelog page side (oldData or newData) collecting every element that
@@ -46,7 +47,8 @@ const collector = (input: any) => {
   const operation: CollectedChangeMap = {
     delete: [],
     insert: [],
-    replace: []
+    replace: [],
+    inactive: []
   }
 
   if (input) {
