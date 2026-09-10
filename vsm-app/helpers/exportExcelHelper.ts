@@ -37,19 +37,17 @@ const OPERATION_TYPES = {
   INSERT: 'insert',
   DELETE: 'delete',
   REPLACE: 'replace',
-  INACTIVE: 'inactive'
+  INACTIVE: 'inactive',
+  UPDATED_CODE_DESCRIPTION: 'updated code description'
 }
 
 // Recursively walks a changelog page side (oldData or newData) collecting every element that
 // carries an `operation`, bucketed by operation type. A replace is only ever half-present on a
 // given side (see buildChangeRows), so both sides need collecting to render one.
 const collector = (input: any) => {
-  const operation: CollectedChangeMap = {
-    delete: [],
-    insert: [],
-    replace: [],
-    inactive: []
-  }
+  const operation: CollectedChangeMap = Object.fromEntries(
+      Object.values(OPERATION_TYPES).map((type) => [type, []])
+  )
 
   if (input) {
     gatherNewValues(input)
