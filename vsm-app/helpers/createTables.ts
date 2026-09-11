@@ -287,8 +287,7 @@ const generateCodeChangesTable = (grouperPage: GrouperVsPage) => {
 
   return [
     ...formatCodeData({ codeItems: grouperPage?.newData?.codes || [] }),
-    // 'Deleted' rather than the operation's own 'delete': GrouperCodesTable styles the row on this text
-    ...formatCodeData({ codeItems: deletedCodes, defaultChange: 'Deleted' })
+    ...formatCodeData({ codeItems: deletedCodes})
   ]
 }
 

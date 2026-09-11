@@ -6,6 +6,7 @@ import { FilterControl } from './FilterControl'
 import { Checkbox, FormControlLabel, FormGroup } from '@mui/material'
 import { NoDataTableComponent } from './NoDataTableComponent'
 import { ValueSetFilterItem } from './DiffViewerTypes'
+import {COLORS, formatRowStyles, generateConditionColor} from './diffRowColors'
 
 const TdItem = styled.div`
   display: flex
@@ -19,12 +20,6 @@ const TdContainer = styled.div`
   align-self: stretch
   flex-grow: 1
 `
-
-export const COLORS = {
-  add: '#EBEFE9',
-  remove: '#FAE6E5',
-  update: '#FDF4DD'
-}
 
 interface SimplifiedFilterItem {
   field: string
@@ -91,26 +86,6 @@ interface Row {
 }
 
 type RowKey = keyof Row
-
-const generateConditionColor = (conditionItem: ConditionUpdate) => {
-  if (conditionItem?.conditionChange?.startsWith('Add')) {
-    return ({
-      backgroundColor: COLORS.add
-    })
-  }
-  else if (conditionItem?.conditionChange?.startsWith('Replace')) {
-    return ({
-      backgroundColor: COLORS.update
-    })
-  }
-  else if (conditionItem?.conditionChange?.startsWith('Remove')) {
-    return ({
-      backgroundColor: COLORS.remove
-    })
-  } else {
-    return ({})
-  }
-}
 
 const ToggleShowNoChange = ({ handleShowUnchanged }: { handleShowUnchanged: (checked: boolean) => void}) => {
   return (
@@ -190,20 +165,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
     return clonedOptions
   }
 
-  const conditionalRowStyles = [
-    {
-      when: (row: Row) => row?.change?.toLowerCase() === 'added vs',
-      style: {
-        backgroundColor: COLORS.add
-      }
-    },
-    {
-      when: (row: Row) => row?.change?.toLowerCase() === 'removed vs',
-      style: {
-        backgroundColor: COLORS.remove
-      }
-    }
-  ]
+  const conditionalRowStyles = formatRowStyles<Row>(['added vs'], ['removed vs'])
 
   // need to do this manually for deletion
   const removeValueSetFilterItems = (allFilterItems: ValueSetFilterItem[], itemsToRemove: SimplifiedFilterItem[]) => {
@@ -416,3 +378,4 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
 }
 
 export { GrouperValueSetsTable }
+export type { ConditionUpdate }
