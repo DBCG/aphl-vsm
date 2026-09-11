@@ -514,17 +514,17 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           headerRow: true,
           style: {},
           columns: [
-            { name: 'Name' },
-            { name: 'OID' },
-            { name: 'Priority' },
-            { name: 'Code System' },
-            { name: 'Code System OID' },
-            { name: 'Status' },
-            { name: 'Condition Name' },
-            { name: 'Condition Code' },
-            { name: 'Condition Code System' },
-            { name: 'Condition Code Version' },
-            { name: 'Change' }
+            { name: 'Name', filterButton: true },
+            { name: 'OID', filterButton: true },
+            { name: 'Priority', filterButton: true },
+            { name: 'Code System', filterButton: true },
+            { name: 'Code System OID', filterButton: true },
+            { name: 'Status', filterButton: true },
+            { name: 'Condition Name', filterButton: true },
+            { name: 'Condition Code', filterButton: true },
+            { name: 'Condition Code System', filterButton: true },
+            { name: 'Condition Code Version', filterButton: true },
+            { name: 'Change', filterButton: true }
           ],
           rows: groupingListRows
         })
