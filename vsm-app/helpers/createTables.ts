@@ -162,8 +162,6 @@ const generateMainChangeText = (grouperListItem: any) => {
     // The leaf's own change is reported ahead of a condition or priority change, which already
     // show in the row's own Condition columns.
     return grouperListItem?.operation?.path?.includes('.valueSet') ? 'Updated VS Version' : 'Updated VS'
-  } else if (allConditionChangeTypes.find((c: any) => c === 'replace')) {
-    return 'Update Conditions'
   } else if (allConditionChangeTypes.length == 1) {
     return `${allConditionChangeTypes[0]} Conditions`
   } else if (grouperListItem?.priority?.operation) {
@@ -180,7 +178,6 @@ const generateMainChangeText = (grouperListItem: any) => {
 const CONDITION_CHANGE_TEXT: Record<string, string> = {
   insert: 'Add condition',
   delete: 'Remove condition',
-  replace: 'Replace condition'
 }
 
 /**
@@ -366,4 +363,4 @@ const createTableData = (diffData: DiffData) => {
   })
 }
 
-export { createTableData }
+export { createTableData, CONDITION_CHANGE_TEXT }

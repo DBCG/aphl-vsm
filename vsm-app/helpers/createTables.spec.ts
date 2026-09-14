@@ -115,7 +115,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '1086051000119107',
           descriptor: 'Cardiomyopathy due to diphtheria (disorder)',
@@ -124,7 +124,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '1086061000119109',
           descriptor: 'Diphtheria radiculomyelitis (disorder)',
@@ -133,7 +133,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '1086071000119103',
           descriptor: 'Diphtheria tubulointerstitial nephropathy (disorder)',
@@ -142,7 +142,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '1090211000119102',
           descriptor: 'Pharyngeal diphtheria (disorder)',
@@ -151,7 +151,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '129667001',
           descriptor: 'Diphtheritic peripheral neuritis (disorder)',
@@ -160,7 +160,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '13596001',
           descriptor: 'Diphtheritic peritonitis (disorder)',
@@ -169,7 +169,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '15682004',
           descriptor: 'Anterior nasal diphtheria (disorder)',
@@ -178,7 +178,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '186347006',
           descriptor: 'Diphtheria of penis (disorder)',
@@ -187,7 +187,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '18901009',
           descriptor: 'Cutaneous diphtheria (disorder)',
@@ -196,7 +196,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '194945009',
           descriptor: 'Acute myocarditis - diphtheritic (disorder)',
@@ -205,7 +205,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '230596007',
           descriptor: 'Diphtheritic neuropathy (disorder)',
@@ -214,7 +214,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '240422004',
           descriptor: 'Tracheobronchial diphtheria (disorder)',
@@ -223,7 +223,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '26117009',
           descriptor: 'Diphtheritic myocarditis (disorder)',
@@ -232,7 +232,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '276197005',
           descriptor: 'Infection caused by Corynebacterium diphtheriae (disorder)',
@@ -241,7 +241,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '3419005',
           descriptor: 'Faucial diphtheria (disorder)',
@@ -250,7 +250,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '397428000',
           descriptor: 'Diphtheria (disorder)',
@@ -259,7 +259,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '397430003',
           descriptor: 'Diphtheria caused by Corynebacterium diphtheriae (disorder)',
@@ -268,7 +268,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '48278001',
           descriptor: 'Diphtheritic cystitis (disorder)',
@@ -277,7 +277,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '50215002',
           descriptor: 'Laryngeal diphtheria (disorder)',
@@ -286,7 +286,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '715659006',
           descriptor: 'Diphtheria of respiratory system (disorder)',
@@ -295,7 +295,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '75589004',
           descriptor: 'Nasopharyngeal diphtheria (disorder)',
@@ -304,7 +304,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '7773002',
           descriptor: 'Conjunctival diphtheria (disorder)',
@@ -313,7 +313,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '789005009',
           descriptor: 'Paralysis of uvula after diphtheria (disorder)',
@@ -434,7 +434,7 @@ describe('createTableData', () => {
         codeSystemOid: '2.16.840.1.113883.6.96',
         display: 'COVID-19',
         system: 'http://snomed.info/sct',
-        operation: { type: 'replace', path: 'ValueSet.useContext[0]' }
+        operation: { type: 'insert', path: 'condition' }
       }],
       codeSystems: [],
       operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]' }
@@ -451,7 +451,7 @@ describe('createTableData', () => {
     expect(row!.change).toBe('Updated VS Version')
     // the condition change is still reported, in the row's own condition columns
     expect(row!.conditionUpdates).toStrictEqual([
-      expect.objectContaining({ conditionChange: 'Replace condition', conditionName: 'COVID-19' })
+      expect.objectContaining({ conditionChange: 'Add condition', conditionName: 'COVID-19' })
     ])
   })
 

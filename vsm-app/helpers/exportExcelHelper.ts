@@ -5,6 +5,7 @@ import { fetchByCanonical } from '@/helpers/server/serverValueSetHelper'
 import { times, uniq } from 'lodash'
 import { Agent, fetch as f } from 'undici'
 import {getReleaseLabel} from "@/helpers/libraryHelpers";
+import { CONDITION_CHANGE_TEXT } from './createTables'
 interface CollectedChange extends ChangeValue {
   keyName: string
   change: string
@@ -198,6 +199,17 @@ type GroupingLeaf = {
 }
 
 /**
+ * How a changed condition reads in the Change column, in the same words the Value Sets table uses.
+ *
+ * Falls back to the raw operation type, so an operation type with no wording yet is still reported
+ * rather than silently blanked.
+ */
+const conditionChangeText = (condition?: GroupingLeafCondition) => {
+  const type = condition?.operation?.type
+  return type ? CONDITION_CHANGE_TEXT[type] ?? type : undefined
+}
+
+/**
  * The Grouping List: one row per changed leaf value set, or one per condition where it has them.
  *
  * Build from `leafValueSets` directly rather than through `collector`. The walker treated every
@@ -216,13 +228,13 @@ const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: Groupi
     return [...kept, ...removed]
   }
 
-  const changeOf = (leaf: GroupingLeaf | undefined, conditions: GroupingLeafCondition[]) =>
-    leaf?.operation?.type ??
-    conditions.find((condition) => condition?.operation?.type)?.operation?.type ??
-    leaf?.priority?.operation?.type
+  // The leaf's own change, deliberately not derived from its conditions since every unchanged condition would
+  // inherit that change.
+  const leafChangeOf = (leaf?: GroupingLeaf) =>
+    leaf?.operation?.type ?? (leaf?.priority?.operation ? 'Updated priority' : undefined)
 
   const rows: any[][] = []
-  const pushRowsFor = (leaf: GroupingLeaf, conditions: GroupingLeafCondition[], change: string) => {
+  const pushRowsFor = (leaf: GroupingLeaf, conditions: GroupingLeafCondition[], change?: string) => {
     const emit = (condition?: GroupingLeafCondition) =>
       rows.push([
         // Prefer readable title to name when present
@@ -237,7 +249,7 @@ const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: Groupi
         condition?.codeSystemName ?? '',
         condition?.version ?? '',
         // a condition that moved says so for itself; the rest inherit the leaf's change
-        condition?.operation?.type ?? change
+        conditionChangeText(condition) ?? change
       ])
     if (conditions.length) {
       conditions.forEach(emit)
@@ -253,9 +265,13 @@ const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: Groupi
     const oldLeaf = oldByOid.get(leaf.memberOid)
     const conditions = conditionsFor(leaf, oldLeaf)
     // a replace is recorded on both sides, so read the old side too when this one says nothing
-    const change = changeOf(leaf, conditions) ?? changeOf(oldLeaf, oldLeaf?.conditions ?? [])
-    if (change) {
-      pushRowsFor(leaf, conditions, change)
+    const leafChange = leafChangeOf(leaf) ?? leafChangeOf(oldLeaf)
+    // A leaf that changed in its own right lists every condition it holds, each reporting the
+    // leaf's change. With no change of its own there is nothing for an unchanged condition to
+    // report, so only the conditions that moved get a row.
+    const reportable = leafChange ? conditions : conditions.filter((condition) => condition?.operation?.type)
+    if (leafChange || reportable.length) {
+      pushRowsFor(leaf, reportable, leafChange)
     }
   })
 

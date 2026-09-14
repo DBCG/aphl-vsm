@@ -356,7 +356,8 @@ describe('generateGrouperValuesetSheet', () => {
 
     expect(rows).toHaveLength(1)
     expect(rows[0][6]).toBe('COVID-19')
-    expect(rows[0][rows[0].length - 1]).toBe('insert')
+    // a condition reports in the same words the Value Sets table uses, not the raw operation type
+    expect(rows[0][rows[0].length - 1]).toBe('Add condition')
   })
 
   // A condition the new release dropped is marked on oldData only, so reading the new side alone
@@ -375,7 +376,7 @@ describe('generateGrouperValuesetSheet', () => {
 
     expect(rows).toHaveLength(1)
     expect(rows[0][6]).toBe('COVID-19')
-    expect(rows[0][rows[0].length - 1]).toBe('delete')
+    expect(rows[0][rows[0].length - 1]).toBe('Remove condition')
   })
 
   // The Change column is per row, so a condition that moved reports its own change rather than
@@ -386,10 +387,27 @@ describe('generateGrouperValuesetSheet', () => {
     const rows = groupingRows(sheet)
 
     expect(rows.map((r) => [r[6], r[r.length - 1]])).toStrictEqual([
-      ['COVID-19', 'insert'],
+      ['COVID-19', 'Add condition'],
       ['Pertussis', 'replace']
     ])
   })
+
+  // A priority change is the leaf's own, so every row for that leaf reports it - but as words, not
+  // as its operation type, which is always `replace` and so read identically to a repinned leaf.
+  it('words a priority change rather than reporting it as a replace', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf(conditions)
+    delete page.oldData.leafValueSets[0].operation
+    delete page.newData.leafValueSets[0].operation
+    page.newData.leafValueSets[0].priority = { value: 'emergent', operation: { type: 'replace', path: 'priority' } }
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows.map((r) => r[r.length - 1])).toStrictEqual(['Updated priority', 'Updated priority'])
+  })
+
 
   it('emits no rows for a leaf nothing changed on', async () => {
     ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
