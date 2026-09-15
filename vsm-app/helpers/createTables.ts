@@ -153,17 +153,18 @@ const generateMainChangeText = (grouperListItem: any) => {
     ?.filter((c: { operation: any }) => c?.operation)
     ?.map((i: { operation: { type: any } }) => i?.operation?.type)) || [] as string[]
 
-  // incomplete possibilities
+  // A repin is deliberately not reported. The branches below still run for such
+  // a leaf, so a condition or priority change it carries is kept.
   if (grouperListItem?.operation?.type === 'insert') {
     return 'Added VS'
   } else if (grouperListItem?.operation?.type === 'delete') {
     return 'Removed VS'
-  } else if (grouperListItem?.operation?.type === 'replace') {
-    // The leaf's own change is reported ahead of a condition or priority change, which already
-    // show in the row's own Condition columns.
-    return grouperListItem?.operation?.path?.includes('.valueSet') ? 'Updated VS Version' : 'Updated VS'
-  } else if (allConditionChangeTypes.length == 1) {
+  } else if (allConditionChangeTypes.length === 1) {
     return `${allConditionChangeTypes[0]} Conditions`
+  } else if (allConditionChangeTypes.length > 1) {
+    // e.g. one condition added and another removed. Without this the row reported no change at all
+    // and the table's own filter hid it.
+    return 'Updated Conditions'
   } else if (grouperListItem?.priority?.operation) {
     return 'Updated Priority'
   } else {
@@ -217,6 +218,20 @@ type ValueSetRow = {
   conditionUpdates: ReturnType<typeof generateConditionUpdates>
 }
 
+/**
+ * Every condition worth showing for a surviving leaf, from both sides.
+ *
+ * A condition is marked on the side that states it, so one the new release dropped exists only in
+ * oldData.
+ */
+const conditionsFromBothSides = (newLeaf: any, oldLeaf: any) => {
+  const kept = newLeaf?.conditions ?? []
+  const codingOf = (condition: any) => `${condition?.system ?? ''}|${condition?.codeValue ?? ''}`
+  const keptCodings = new Set(kept.map(codingOf))
+  const removed = (oldLeaf?.conditions ?? []).filter((c: any) => c?.operation && !keptCodings.has(codingOf(c)))
+  return [...kept, ...removed]
+}
+
 // need to always include text on conditions items
 const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
   // doing this here because it's not explicitly noted in the changelog
@@ -225,17 +240,19 @@ const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
 
   const deletedLeafIds = allOldLeafIds.filter(id => !newLeafIds.includes(id))
   const deletedValueSets = grouperPage?.oldData?.leafValueSets?.filter(vs => deletedLeafIds?.includes(vs?.memberOid)) || []
+  const oldLeafByOid = new Map((grouperPage?.oldData?.leafValueSets ?? []).map(leaf => [leaf?.memberOid, leaf]))
 
   let newData: ValueSetRow[] = grouperPage?.newData?.leafValueSets?.map(gi => {
     const newCodeSystems = uniqueCodeSystems(gi?.codeSystems || [])
+    const conditions = conditionsFromBothSides(gi, oldLeafByOid.get(gi?.memberOid))
     return ({
-      change: generateMainChangeText(gi),
+      change: generateMainChangeText({ ...gi, conditions }),
       codeSystems: newCodeSystems,
       // The title is more readable. Fall back to name when a leaf has no title.
       name: gi.title || gi.name,
       oid: gi.memberOid,
       priority: gi.priority.value,
-      conditionUpdates: generateConditionUpdates(gi.conditions, false)
+      conditionUpdates: generateConditionUpdates(conditions, false)
     })
   }) || []
 

@@ -228,10 +228,15 @@ const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: Groupi
     return [...kept, ...removed]
   }
 
-  // The leaf's own change, deliberately not derived from its conditions since every unchanged condition would
-  // inherit that change.
-  const leafChangeOf = (leaf?: GroupingLeaf) =>
-    leaf?.operation?.type ?? (leaf?.priority?.operation ? 'Updated priority' : undefined)
+  // The leaf's own change. A repin is not reported as any content that came with the new version is already reported in the
+  // Code List. Its conditions and priority are still compared, so a real change carried by a repinned release is not lost.
+  const leafChangeOf = (leaf?: GroupingLeaf) => {
+    const own = leaf?.operation?.type
+    if (own && own !== OPERATION_TYPES.REPLACE) {
+      return own
+    }
+    return leaf?.priority?.operation ? 'Updated priority' : undefined
+  }
 
   const rows: any[][] = []
   const pushRowsFor = (leaf: GroupingLeaf, conditions: GroupingLeafCondition[], change?: string) => {

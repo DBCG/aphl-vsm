@@ -154,9 +154,8 @@ describe('generateGrouperValuesetSheet', () => {
     identifier: [{ value: 'urn:oid:2.16.840.1.113762.1.4.1146.627' }]
   }
 
-  // A repinned leaf: the grouper's compose reference moved to a new version. The leaf itself
-  // carries the replace and has no conditions, which used to emit no rows at all.
-  // Page records a replace on BOTH sides, so oldData carries the same leaf under its old name.
+  // A repinned leaf: the grouper's compose reference moved to a new version. A repin is not reported
+  // on its own, so this fixture emits no rows unless a test gives the leaf a change that is reportable.
   const pageWithRepinnedLeaf = (conditions: any[]) => ({
     resourceType: 'ValueSet',
     url: 'http://ersd.aimsplatform.org/fhir/ValueSet/dxtc',
@@ -199,10 +198,17 @@ describe('generateGrouperValuesetSheet', () => {
     }
   })
 
+  /**
+   * A sheet for a leaf that is reported, so the condition columns can be asserted on. The leaf is
+   * added to the grouper rather than repinned.
+   */
   const buildSheet = async (conditions: any[]) => {
     ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf(conditions)
+    page.oldData.leafValueSets = []
+    page.newData.leafValueSets[0].operation = { type: 'insert', path: 'ValueSet.compose.include[0].valueSet[3]' }
     const workbook = new ExcelJS.Workbook()
-    await generateGrouperValuesetSheet(workbook, [pageWithRepinnedLeaf(conditions)])
+    await generateGrouperValuesetSheet(workbook, [page])
     return workbook.getWorksheet(grouperVs.name)!
   }
 
@@ -215,19 +221,50 @@ describe('generateGrouperValuesetSheet', () => {
     return rows
   }
 
-  it('emits a Grouping List row for a leaf that changed but has no conditions', async () => {
+  it('emits one row for an added leaf with no conditions', async () => {
     const sheet = await buildSheet([])
     const titles: string[] = []
     sheet.eachRow((row) => { const v = (row.values as any[])[1]; if (typeof v === 'string') titles.push(v) })
 
     expect(titles).toContain('Grouping List')
     const rows = groupingRows(sheet)
-    // one row for the leaf, not one per side of the replace
     expect(rows).toHaveLength(1)
     // the Change column is last, and blank condition columns sit before it
-    expect(rows[0][rows[0].length - 1]).toBe('replace')
+    expect(rows[0][rows[0].length - 1]).toBe('insert')
     // newData's name, matching what the Value Sets table shows on screen
     expect(rows[0][0]).toBe('DiphtheriaDisordersSNOMED')
+  })
+
+  // A repin moves the grouper's reference to a new version of the same leaf. The leaf is the same value set,
+  // and content changes are still reported.
+  it('emits no rows for a leaf whose only change is a version repin', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [pageWithRepinnedLeaf([])])
+    const sheet = workbook.getWorksheet(grouperVs.name)!
+
+    expect(groupingRows(sheet)).toStrictEqual([])
+    const titles: string[] = []
+    sheet.eachRow((row) => { const v = (row.values as any[])[1]; if (typeof v === 'string') titles.push(v) })
+    expect(titles).not.toContain('Grouping List')
+  })
+
+  // The repin is dropped, not the leaf: a condition change it carries is still reported.
+  it('keeps a condition change on a repinned leaf', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf([
+      { codeValue: '840539006', display: 'COVID-19', system: 'http://snomed.info/sct', codeSystemName: 'SNOMEDCT',
+        operation: { type: 'insert', path: 'condition' } }
+    ])
+    page.oldData.leafValueSets[0].conditions = []
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0][6]).toBe('COVID-19')
+    expect(rows[0][rows[0].length - 1]).toBe('Add condition')
   })
 
   // The same OID can carry different change types on each side: a reordering diff emits a delete at
@@ -252,6 +289,8 @@ describe('generateGrouperValuesetSheet', () => {
     const page: any = pageWithRepinnedLeaf([])
     page.oldData.leafValueSets[0].title = 'Diphtheria Disorders (SNOMED)'
     page.newData.leafValueSets[0].title = 'Diphtheria Disorders (SNOMED)'
+    // a repin alone emits nothing, so give the leaf a change that is reported
+    page.newData.leafValueSets[0].operation = { type: 'insert', path: 'ValueSet.compose.include[0].valueSet[3]' }
 
     const workbook = new ExcelJS.Workbook()
     await generateGrouperValuesetSheet(workbook, [page])
@@ -283,13 +322,13 @@ describe('generateGrouperValuesetSheet', () => {
     { codeValue: '27836007', display: 'Pertussis', system: 'http://snomed.info/sct', codeSystemName: 'SNOMEDCT' }
   ]
 
-  it('still emits one row per condition when the leaf has them', async () => {
+  it('emits one row per condition when the leaf has them', async () => {
     const sheet = await buildSheet(conditions)
 
     const rows = groupingRows(sheet)
     expect(rows).toHaveLength(2)
     expect(rows.map((r) => r[6])).toStrictEqual(['COVID-19', 'Pertussis'])
-    rows.forEach((r) => expect(r[r.length - 1]).toBe('replace'))
+    rows.forEach((r) => expect(r[r.length - 1]).toBe('insert'))
   })
   
   it('reads a condition code from codeValue, which is what the changelog carries', async () => {
@@ -379,16 +418,16 @@ describe('generateGrouperValuesetSheet', () => {
     expect(rows[0][rows[0].length - 1]).toBe('Remove condition')
   })
 
-  // The Change column is per row, so a condition that moved reports its own change rather than
-  // inheriting the leaf's. Otherwise a repinned leaf reports every one of its conditions as
-  // "replace", including the one that was actually added.
-  it('gives a moved condition its own change and the rest the leafs', async () => {
+  // The Change column is per row, so a condition that moved reports its own change while the rest
+  // report the leaf's. Without that, every condition on a changed leaf reads as the leaf's change,
+  // including the one that actually moved.
+  it("gives a moved condition its own change and the rest the leaf's", async () => {
     const sheet = await buildSheet([{ ...conditions[0], operation: { type: 'insert', path: 'condition' } }, conditions[1]])
     const rows = groupingRows(sheet)
 
     expect(rows.map((r) => [r[6], r[r.length - 1]])).toStrictEqual([
       ['COVID-19', 'Add condition'],
-      ['Pertussis', 'replace']
+      ['Pertussis', 'insert']
     ])
   })
 

@@ -332,7 +332,7 @@ describe('createTableData', () => {
     expect(result.grouperPages).toStrictEqual(expectedGrouperData)
   })
 
-  it('should label a leaf whose grouper reference was repinned to a new version', () => {
+  it('should not report a repin as a change', () => {
     const leaf = {
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
       title: 'Haemophilus influenzae',
@@ -361,14 +361,12 @@ describe('createTableData', () => {
     const row = grouper.valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
     expect(row).toBeDefined()
-    expect(row!.change).toBe('Updated VS Version')
-    // an empty change string is what hid the row, so the section has to know it changed
-    expect(grouper.hasChanges).toBe(true)
+    expect(row!.change).toBe('')
   })
 
-  // A full compose replace tags every leaf in the grouper, not just the ones that moved, so
-  // the label must not claim a version change unless the operation is on the leaf's own reference.
-  it('should not claim a version change for a replace outside the leaf reference', () => {
+  // A replace outside the leaf's own reference reports nothing.
+  // No leaf-level replace is reported, so the path it carries no longer matters.
+  it('should not report a compose-level replace as a change', () => {
     const leaf = {
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
       title: 'Haemophilus influenzae',
@@ -389,7 +387,7 @@ describe('createTableData', () => {
     // @ts-ignore
     const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
-    expect(row!.change).toBe('Updated VS')
+    expect(row!.change).toBe('')
   })
 
   // The Value Sets table shows the leaf title, not the `name`.
@@ -417,10 +415,9 @@ describe('createTableData', () => {
     expect(row!.name).toBe('Haemophilus Influenzae (SNOMED)')
   })
 
-  // Guards the ordering of the branch. This used to assert the opposite (conditions ahead of the
-  // repin), which meant a leaf that both moved its pin and changed a condition reported only the
-  // condition.
-  it('should report the leaf repin ahead of a condition change', () => {
+  // The repin is dropped, not the leaf: a condition change it carries is still reported, both as the
+  // row's headline change and in its own condition columns.
+  it('should report a condition change on a repinned leaf', () => {
     const leaf = {
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
       title: 'Haemophilus influenzae',
@@ -448,14 +445,50 @@ describe('createTableData', () => {
     // @ts-ignore
     const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
-    expect(row!.change).toBe('Updated VS Version')
-    // the condition change is still reported, in the row's own condition columns
+    expect(row!.change).toBe('insert Conditions')
     expect(row!.conditionUpdates).toStrictEqual([
       expect.objectContaining({ conditionChange: 'Add condition', conditionName: 'COVID-19' })
     ])
   })
 
-  it('should still report a condition change on a leaf whose pin did not move', () => {
+  it('should report a condition removed from a leaf that survived', () => {
+    const condition = (codeValue: string, display: string, operationType: string) => ({
+      codeValue,
+      display,
+      system: 'http://snomed.info/sct',
+      codeSystemName: 'SNOMEDCT',
+      operation: { type: operationType, path: 'condition' }
+    })
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1310',
+      title: 'West Nile Virus',
+      status: 'active',
+      name: 'WestNileVirus',
+      memberOid: '2.16.840.1.113762.1.4.1146.1310',
+      priority: { value: 'routine' },
+      codeSystems: []
+    }
+    const withSwap = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withSwap.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [
+      { ...leaf, conditions: [condition('55735004', 'RSV infection', 'delete')] }
+    ]
+    grouperPage.newData.leafValueSets = [
+      { ...leaf, conditions: [condition('761671000124100', 'Death from RSV', 'insert')] }
+    ]
+
+    const result = createTableData(withSwap)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.change).toBe('Updated Conditions')
+    expect(row!.conditionUpdates).toStrictEqual([
+      expect.objectContaining({ conditionChange: 'Add condition', conditionName: 'Death from RSV' }),
+      expect.objectContaining({ conditionChange: 'Remove condition', conditionName: 'RSV infection' })
+    ])
+  })
+
+  it('should report an added condition as the rows change', () => {
     const leaf = {
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
       title: 'Haemophilus influenzae',
