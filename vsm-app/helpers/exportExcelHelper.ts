@@ -498,8 +498,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
         ['Publisher', grouperVs.publisher],
         ['Purpose', grouperVs.purpose],
         ['Description', grouperVs.description],
-        ['Version', grouperVs.version],
-        ['Priority', page.oldData?.priority?.value || page.newData?.priority?.value]
+        ['Version', grouperVs.version]
       ]
       groupingValueSetSheet.addRows(vsInfo)
       // Bold the headers
