@@ -5,7 +5,7 @@ import { fetchByCanonical } from '@/helpers/server/serverValueSetHelper'
 import { times, uniq } from 'lodash'
 import { Agent, fetch as f } from 'undici'
 import {getReleaseLabel} from "@/helpers/libraryHelpers";
-import { CONDITION_CHANGE_TEXT } from './createTables'
+import { CODE_CHANGE_TEXT, CONDITION_CHANGE_TEXT, LEAF_CHANGE_TEXT, changeText } from './createTables'
 interface CollectedChange extends ChangeValue {
   keyName: string
   change: string
@@ -199,17 +199,6 @@ type GroupingLeaf = {
 }
 
 /**
- * How a changed condition reads in the Change column, in the same words the Value Sets table uses.
- *
- * Falls back to the raw operation type, so an operation type with no wording yet is still reported
- * rather than silently blanked.
- */
-const conditionChangeText = (condition?: GroupingLeafCondition) => {
-  const type = condition?.operation?.type
-  return type ? CONDITION_CHANGE_TEXT[type] ?? type : undefined
-}
-
-/**
  * The Grouping List: one row per changed leaf value set, or one per condition where it has them.
  *
  * Build from `leafValueSets` directly rather than through `collector`. The walker treated every
@@ -233,7 +222,7 @@ const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: Groupi
   const leafChangeOf = (leaf?: GroupingLeaf) => {
     const own = leaf?.operation?.type
     if (own && own !== OPERATION_TYPES.REPLACE) {
-      return own
+      return changeText(own, LEAF_CHANGE_TEXT)
     }
     return leaf?.priority?.operation ? 'Updated priority' : undefined
   }
@@ -254,7 +243,7 @@ const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: Groupi
         condition?.codeSystemName ?? '',
         condition?.version ?? '',
         // a condition that moved says so for itself; the rest inherit the leaf's change
-        conditionChangeText(condition) ?? change
+        changeText(condition?.operation?.type, CONDITION_CHANGE_TEXT) ?? change
       ])
     if (conditions.length) {
       conditions.forEach(emit)
@@ -284,7 +273,7 @@ const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: Groupi
   // record one, and it records a positional delete on leaves that in fact survived.
   oldLeaves
     .filter((leaf) => !newOids.has(leaf.memberOid))
-    .forEach((leaf) => pushRowsFor(leaf, leaf.conditions ?? [], OPERATION_TYPES.DELETE))
+    .forEach((leaf) => pushRowsFor(leaf, leaf.conditions ?? [], changeText(OPERATION_TYPES.DELETE, LEAF_CHANGE_TEXT)))
 
   return rows
 }
@@ -562,7 +551,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
             // The manual change log leaves Remap Info empty on every row
             // TODO:: is there a real value we can assign here?
             const remapInfo = ''
-            codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])
+            const change = changeText(key, CODE_CHANGE_TEXT)
+            codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, remapInfo, change])
           })
         })
       }

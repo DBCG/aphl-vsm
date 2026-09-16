@@ -172,14 +172,35 @@ const generateMainChangeText = (grouperListItem: any) => {
   }
 }
 
-// conditions can be added, removed, or updated
-// could be updates to code, text, system
-// might need to combine multiple "replace" fields
+// conditions can be added, or removed
 // The words the change text starts with drive the row colour - see generateConditionColor.
 const CONDITION_CHANGE_TEXT: Record<string, string> = {
   insert: 'Add condition',
   delete: 'Remove condition',
 }
+
+// How a code change reads
+const CODE_CHANGE_TEXT: Record<string, string> = {
+  insert: 'Added',
+  delete: 'Removed',
+  inactive: 'Inactive',
+  'updated code description': 'Updated Code Description'
+}
+
+// How a whole leaf value set joining or leaving a grouper reads
+const LEAF_CHANGE_TEXT: Record<string, string> = {
+  insert: 'Added',
+  delete: 'Removed'
+}
+
+/**
+ * A change operation type in readable format rather than the raw operation type.
+ *
+ * Falls back to the raw type, so a type gaining no wording yet is still reported rather than
+ * silently ignored.
+ */
+const changeText = (type: string | undefined, words: Record<string, string>) =>
+  type ? words[type] ?? type : undefined
 
 /**
  * One renderable row per condition.
@@ -380,4 +401,4 @@ const createTableData = (diffData: DiffData) => {
   })
 }
 
-export { createTableData, CONDITION_CHANGE_TEXT }
+export { createTableData, CONDITION_CHANGE_TEXT, CODE_CHANGE_TEXT, LEAF_CHANGE_TEXT, changeText }

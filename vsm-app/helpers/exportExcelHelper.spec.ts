@@ -230,7 +230,7 @@ describe('generateGrouperValuesetSheet', () => {
     const rows = groupingRows(sheet)
     expect(rows).toHaveLength(1)
     // the Change column is last, and blank condition columns sit before it
-    expect(rows[0][rows[0].length - 1]).toBe('insert')
+    expect(rows[0][rows[0].length - 1]).toBe('Added')
     // newData's name, matching what the Value Sets table shows on screen
     expect(rows[0][0]).toBe('DiphtheriaDisordersSNOMED')
   })
@@ -281,7 +281,7 @@ describe('generateGrouperValuesetSheet', () => {
     const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
 
     expect(rows).toHaveLength(1)
-    expect(rows[0][rows[0].length - 1]).toBe('insert')
+    expect(rows[0][rows[0].length - 1]).toBe('Added')
   })
 
   it('prefers the leaf title over the name in the Grouping List', async () => {
@@ -312,7 +312,7 @@ describe('generateGrouperValuesetSheet', () => {
 
     expect(rows).toHaveLength(1)
     expect(rows[0][0]).toBe('Diptheria Disorders')
-    expect(rows[0][rows[0].length - 1]).toBe('delete')
+    expect(rows[0][rows[0].length - 1]).toBe('Removed')
   })
 
   // Shape taken from the changelog JSON: a condition is a ValueSetChild.Code, so its code is
@@ -328,7 +328,7 @@ describe('generateGrouperValuesetSheet', () => {
     const rows = groupingRows(sheet)
     expect(rows).toHaveLength(2)
     expect(rows.map((r) => r[6])).toStrictEqual(['COVID-19', 'Pertussis'])
-    rows.forEach((r) => expect(r[r.length - 1]).toBe('insert'))
+    rows.forEach((r) => expect(r[r.length - 1]).toBe('Added'))
   })
   
   it('reads a condition code from codeValue, which is what the changelog carries', async () => {
@@ -427,8 +427,21 @@ describe('generateGrouperValuesetSheet', () => {
 
     expect(rows.map((r) => [r[6], r[r.length - 1]])).toStrictEqual([
       ['COVID-19', 'Add condition'],
-      ['Pertussis', 'insert']
+      ['Pertussis', 'Added']
     ])
+  })
+
+  it('reports a leaf added to the grouper, whose conditions are unmarked', async () => {
+    ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+    const page: any = pageWithRepinnedLeaf(conditions)
+    page.oldData.leafValueSets = []
+    page.newData.leafValueSets[0].operation = { type: 'insert', path: 'ValueSet.compose.include[0].valueSet[3]' }
+
+    const workbook = new ExcelJS.Workbook()
+    await generateGrouperValuesetSheet(workbook, [page])
+    const rows = groupingRows(workbook.getWorksheet(grouperVs.name)!)
+
+    expect(rows.map((r) => r[r.length - 1])).toStrictEqual(['Added', 'Added'])
   })
 
   // A priority change is the leaf's own, so every row for that leaf reports it - but as words, not
@@ -531,6 +544,40 @@ describe('generateGrouperValuesetSheet', () => {
         '14188007': 'Active',
         '23022004': ''
       })
+    })
+
+    // The Change column reads in plain English, not operation types.
+    describe('Change column', () => {
+      const CHANGE = 7
+
+      const changeFor = async (operationType: string) => {
+        ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
+        const withOperation = { ...code('13570003'), operation: { type: operationType, path: 'code' } }
+        const page: any = pageWithCodes(operationType === 'delete' ? [] : [withOperation])
+        if (operationType === 'delete') {
+          page.oldData.codes = [withOperation]
+        }
+
+        const workbook = new ExcelJS.Workbook()
+        await generateGrouperValuesetSheet(workbook, [page])
+        let change
+        workbook.getWorksheet(grouperVs.name)!.eachRow((row) => {
+          const values = (row.values as any[]).slice(1)
+          if (values[0] === '2.16.840.1.113762.1.4.1146.422') { change = values[CHANGE] }
+        })
+        return change
+      }
+
+      it('reads Added for an insert', async () => expect(await changeFor('insert')).toBe('Added'))
+      it('reads Removed for a delete', async () => expect(await changeFor('delete')).toBe('Removed'))
+      it('reads Inactive for a code that went inactive', async () =>
+        expect(await changeFor('inactive')).toBe('Inactive'))
+      it('reads Updated Code Description for a reworded display', async () =>
+        expect(await changeFor('updated code description')).toBe('Updated Code Description'))
+
+      // so an operation type gaining no wording is still reported rather than silently blanked
+      it('falls back to the operation type when there is no wording for it', async () =>
+        expect(await changeFor('replace')).toBe('replace'))
     })
   })
 })
