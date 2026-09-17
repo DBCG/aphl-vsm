@@ -18,7 +18,8 @@ import {
   applyVersionUpdate,
   applyAddManifestEntry,
   countDistinctPinsForCanonical,
-  isDependsOnEntryForLeaf
+  isDependsOnEntryForLeaf,
+  getOid
 } from './valueSetHelpers'
 import { uniq } from 'lodash'
 import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional';
@@ -1536,5 +1537,36 @@ describe('VSP Manifest Functions', () => {
       applyAddManifestEntry(input, 'http://snomed.info/sct', '20240301')
       expect(input).toEqual(snapshot)
     })
+  })
+})
+
+describe('getOid', () => {
+  // eRSD identifiers carry the urn:oid: prefix; the manual RCTC change log and the grouper sheets
+  // both show the bare OID, and the Read Me was the one place still leaking the prefix.
+  it('strips the urn:oid: prefix from the identifier', () => {
+    const library = {
+      resourceType: 'Library',
+      identifier: [{ value: 'urn:oid:2.16.840.1.114222.4.11.7508' }]
+    } as fhir4.Library
+
+    expect(getOid(library)).toBe('2.16.840.1.114222.4.11.7508')
+  })
+
+  it('leaves an identifier that has no prefix alone', () => {
+    const library = {
+      resourceType: 'Library',
+      identifier: [{ value: '2.16.840.1.114222.4.11.7508' }]
+    } as fhir4.Library
+
+    expect(getOid(library)).toBe('2.16.840.1.114222.4.11.7508')
+  })
+
+  it('falls back to the url when there is no identifier', () => {
+    const valueSet = {
+      resourceType: 'ValueSet',
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602'
+    } as fhir4.ValueSet
+
+    expect(getOid(valueSet)).toBe('2.16.840.1.113762.1.4.1146.6')
   })
 })

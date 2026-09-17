@@ -115,7 +115,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '1086051000119107',
           descriptor: 'Cardiomyopathy due to diphtheria (disorder)',
@@ -124,7 +124,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '1086061000119109',
           descriptor: 'Diphtheria radiculomyelitis (disorder)',
@@ -133,7 +133,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '1086071000119103',
           descriptor: 'Diphtheria tubulointerstitial nephropathy (disorder)',
@@ -142,7 +142,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '1090211000119102',
           descriptor: 'Pharyngeal diphtheria (disorder)',
@@ -151,7 +151,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '129667001',
           descriptor: 'Diphtheritic peripheral neuritis (disorder)',
@@ -160,7 +160,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '13596001',
           descriptor: 'Diphtheritic peritonitis (disorder)',
@@ -169,7 +169,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '15682004',
           descriptor: 'Anterior nasal diphtheria (disorder)',
@@ -178,7 +178,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '186347006',
           descriptor: 'Diphtheria of penis (disorder)',
@@ -187,7 +187,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '18901009',
           descriptor: 'Cutaneous diphtheria (disorder)',
@@ -196,7 +196,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '194945009',
           descriptor: 'Acute myocarditis - diphtheritic (disorder)',
@@ -205,7 +205,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '230596007',
           descriptor: 'Diphtheritic neuropathy (disorder)',
@@ -214,7 +214,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '240422004',
           descriptor: 'Tracheobronchial diphtheria (disorder)',
@@ -223,7 +223,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '26117009',
           descriptor: 'Diphtheritic myocarditis (disorder)',
@@ -232,7 +232,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '276197005',
           descriptor: 'Infection caused by Corynebacterium diphtheriae (disorder)',
@@ -241,7 +241,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '3419005',
           descriptor: 'Faucial diphtheria (disorder)',
@@ -250,7 +250,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '397428000',
           descriptor: 'Diphtheria (disorder)',
@@ -259,7 +259,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '397430003',
           descriptor: 'Diphtheria caused by Corynebacterium diphtheriae (disorder)',
@@ -268,7 +268,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '48278001',
           descriptor: 'Diphtheritic cystitis (disorder)',
@@ -277,7 +277,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '50215002',
           descriptor: 'Laryngeal diphtheria (disorder)',
@@ -286,7 +286,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '715659006',
           descriptor: 'Diphtheria of respiratory system (disorder)',
@@ -295,7 +295,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '75589004',
           descriptor: 'Nasopharyngeal diphtheria (disorder)',
@@ -304,7 +304,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '7773002',
           descriptor: 'Conjunctival diphtheria (disorder)',
@@ -313,7 +313,7 @@ describe('createTableData', () => {
           codeSystemOID: ''
         },
         {
-          change: 'Deleted',
+          change: 'delete',
           oid: '2.16.840.1.113762.1.4.1146.6',
           code: '789005009',
           descriptor: 'Paralysis of uvula after diphtheria (disorder)',
@@ -332,7 +332,7 @@ describe('createTableData', () => {
     expect(result.grouperPages).toStrictEqual(expectedGrouperData)
   })
 
-  it('should label a leaf whose grouper reference was repinned to a new version', () => {
+  it('should not report a repin as a change', () => {
     const leaf = {
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
       title: 'Haemophilus influenzae',
@@ -361,14 +361,12 @@ describe('createTableData', () => {
     const row = grouper.valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
     expect(row).toBeDefined()
-    expect(row!.change).toBe('Updated VS Version')
-    // an empty change string is what hid the row, so the section has to know it changed
-    expect(grouper.hasChanges).toBe(true)
+    expect(row!.change).toBe('')
   })
 
-  // A full compose replace tags every leaf in the grouper, not just the ones that moved, so
-  // the label must not claim a version change unless the operation is on the leaf's own reference.
-  it('should not claim a version change for a replace outside the leaf reference', () => {
+  // A replace outside the leaf's own reference reports nothing.
+  // No leaf-level replace is reported, so the path it carries no longer matters.
+  it('should not report a compose-level replace as a change', () => {
     const leaf = {
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
       title: 'Haemophilus influenzae',
@@ -389,11 +387,37 @@ describe('createTableData', () => {
     // @ts-ignore
     const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
-    expect(row!.change).toBe('Updated VS')
+    expect(row!.change).toBe('')
   })
 
-  // guards the ordering of the branch - a repin must not shadow the existing labels
-  it('should keep condition and priority labels ahead of the repin label', () => {
+  // The Value Sets table shows the leaf title, not the `name`.
+  it('should prefer the leaf title over the name token', () => {
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+      title: 'Haemophilus Influenzae (SNOMED)',
+      status: 'active',
+      name: 'HaemophilusInfluenzaeSNOMED',
+      memberOid: '2.16.840.1.113762.1.4.1146.277',
+      priority: { value: 'routine' },
+      conditions: [],
+      codeSystems: [],
+      operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]' }
+    }
+    const withTitle = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withTitle.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [{ ...leaf, operation: undefined }]
+    grouperPage.newData.leafValueSets = [leaf]
+
+    const result = createTableData(withTitle)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.name).toBe('Haemophilus Influenzae (SNOMED)')
+  })
+
+  // The repin is dropped, not the leaf: a condition change it carries is still reported, both as the
+  // row's headline change and in its own condition columns.
+  it('should report a condition change on a repinned leaf', () => {
     const leaf = {
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
       title: 'Haemophilus influenzae',
@@ -407,7 +431,7 @@ describe('createTableData', () => {
         codeSystemOid: '2.16.840.1.113883.6.96',
         display: 'COVID-19',
         system: 'http://snomed.info/sct',
-        operation: { type: 'replace', path: 'ValueSet.useContext[0]' }
+        operation: { type: 'insert', path: 'condition' }
       }],
       codeSystems: [],
       operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]' }
@@ -421,7 +445,143 @@ describe('createTableData', () => {
     // @ts-ignore
     const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
-    expect(row!.change).toBe('Update Conditions')
+    expect(row!.change).toBe('insert Conditions')
+    expect(row!.conditionUpdates).toStrictEqual([
+      expect.objectContaining({ conditionChange: 'Add condition', conditionName: 'COVID-19' })
+    ])
+  })
+
+  it('should report a condition removed from a leaf that survived', () => {
+    const condition = (codeValue: string, display: string, operationType: string) => ({
+      codeValue,
+      display,
+      system: 'http://snomed.info/sct',
+      codeSystemName: 'SNOMEDCT',
+      operation: { type: operationType, path: 'condition' }
+    })
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1310',
+      title: 'West Nile Virus',
+      status: 'active',
+      name: 'WestNileVirus',
+      memberOid: '2.16.840.1.113762.1.4.1146.1310',
+      priority: { value: 'routine' },
+      codeSystems: []
+    }
+    const withSwap = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withSwap.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [
+      { ...leaf, conditions: [condition('55735004', 'RSV infection', 'delete')] }
+    ]
+    grouperPage.newData.leafValueSets = [
+      { ...leaf, conditions: [condition('761671000124100', 'Death from RSV', 'insert')] }
+    ]
+
+    const result = createTableData(withSwap)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.change).toBe('Updated Conditions')
+    expect(row!.conditionUpdates).toStrictEqual([
+      expect.objectContaining({ conditionChange: 'Add condition', conditionName: 'Death from RSV' }),
+      expect.objectContaining({ conditionChange: 'Remove condition', conditionName: 'RSV infection' })
+    ])
+  })
+
+  it('should report an added condition as the rows change', () => {
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+      title: 'Haemophilus influenzae',
+      status: 'active',
+      name: 'HaemophilusInfluenzae',
+      memberOid: '2.16.840.1.113762.1.4.1146.277',
+      priority: { value: 'routine' },
+      conditions: [{
+        codeValue: '840539006',
+        display: 'COVID-19',
+        system: 'http://snomed.info/sct',
+        operation: { type: 'insert', path: 'condition' }
+      }],
+      codeSystems: []
+    }
+    const withCondition = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withCondition.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [{ ...leaf, conditions: [] }]
+    grouperPage.newData.leafValueSets = [leaf]
+
+    const result = createTableData(withCondition)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.change).toBe('insert Conditions')
+  })
+  
+  describe('condition updates', () => {
+    const conditionUpdatesFor = (conditions: any[]) => {
+      const leaf = {
+        url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+        title: 'Haemophilus influenzae',
+        status: 'active',
+        name: 'HaemophilusInfluenzae',
+        memberOid: '2.16.840.1.113762.1.4.1146.277',
+        priority: { value: 'routine' },
+        conditions,
+        codeSystems: [],
+        operation: { type: 'replace', path: 'ValueSet.compose.include[0].valueSet[0]' }
+      }
+      const withConditions = JSON.parse(JSON.stringify(changelog))
+      const grouperPage = withConditions.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+      grouperPage.oldData.leafValueSets = [{ ...leaf, conditions: [], operation: undefined }]
+      grouperPage.newData.leafValueSets = [leaf]
+
+      const result = createTableData(withConditions)
+      // @ts-ignore
+      const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+      return row!.conditionUpdates
+    }
+
+    const condition = (operation?: any) => ({
+      codeValue: '840539006',
+      display: 'COVID-19',
+      system: 'http://snomed.info/sct',
+      version: '2025-09',
+      operation
+    })
+
+    it('never yields an undefined entry, whatever the operation looks like', () => {
+      const updates = conditionUpdatesFor([
+        condition({ type: 'insert', path: 'condition' }),
+        condition({ type: 'delete', path: 'condition' }),
+        condition({ type: 'replace', path: 'something.unrecognised' }),
+        condition({ type: 'not-a-real-type', path: '' }),
+        condition(undefined)
+      ])
+
+      expect(updates).toHaveLength(5)
+      updates.forEach((update: any) => expect(update).toBeDefined())
+    })
+
+    it('reads the condition code from codeValue, which is what the changelog carries', () => {
+      const [update] = conditionUpdatesFor([condition({ type: 'insert', path: 'condition' })])
+
+      expect(update.conditionCode).toBe('840539006')
+      expect(update.conditionSystem).toBe('http://snomed.info/sct')
+      expect(update.conditionName).toBe('COVID-19')
+    })
+
+    it('labels a change from the operation type, not from the path', () => {
+      const updates = conditionUpdatesFor([
+        condition({ type: 'insert', path: 'condition' }),
+        condition({ type: 'delete', path: 'condition' }),
+        condition(undefined)
+      ])
+
+      expect(updates.map((u: any) => u.conditionChange)).toStrictEqual([
+        'Add condition',
+        'Remove condition',
+        undefined
+      ])
+    })
   })
 
 })

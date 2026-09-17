@@ -2,8 +2,10 @@ import ExcelJS from 'exceljs'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { fetchByCanonical } from '@/helpers/server/serverValueSetHelper'
-import { startCase, times, uniq } from 'lodash'
+import { times, uniq } from 'lodash'
 import { Agent, fetch as f } from 'undici'
+import {getReleaseLabel} from "@/helpers/libraryHelpers";
+import { CODE_CHANGE_TEXT, CONDITION_CHANGE_TEXT, LEAF_CHANGE_TEXT, changeText } from './createTables'
 interface CollectedChange extends ChangeValue {
   keyName: string
   change: string
@@ -24,6 +26,8 @@ type ChangeValue = {
   system: string
   codeValue: string
   memberOid: string
+  // Code status as the expansion recorded it. Absent when the expansion never stated a status.
+  inactive?: boolean
 }
 
 type CollectedChangeMap = {
@@ -33,18 +37,18 @@ type CollectedChangeMap = {
 const OPERATION_TYPES = {
   INSERT: 'insert',
   DELETE: 'delete',
-  REPLACE: 'replace'
+  REPLACE: 'replace',
+  INACTIVE: 'inactive',
+  UPDATED_CODE_DESCRIPTION: 'updated code description'
 }
 
 // Recursively walks a changelog page side (oldData or newData) collecting every element that
 // carries an `operation`, bucketed by operation type. A replace is only ever half-present on a
 // given side (see buildChangeRows), so both sides need collecting to render one.
 const collector = (input: any) => {
-  const operation: CollectedChangeMap = {
-    delete: [],
-    insert: [],
-    replace: []
-  }
+  const operation: CollectedChangeMap = Object.fromEntries(
+      Object.values(OPERATION_TYPES).map((type) => [type, []])
+  )
 
   if (input) {
     gatherNewValues(input)
@@ -133,34 +137,145 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string, input:
   return (changeJson!)
 }
 
-const extractConditions = (rootLibraryChangeDiff: any) => {
-  const conditions: string[] = []
+/**
+ * Conditions genuinely new to the program: declared by the target manifest and not by the source.
+ */
+const extractNewConditions = (
+  sourceLibrary: fhir4.Library | undefined,
+  targetLibrary: fhir4.Library | undefined
+) => {
+  const before = conditionsBySystemAndCode(sourceLibrary)
+  const after = conditionsBySystemAndCode(targetLibrary)
 
-  // Get all new conditions
-  rootLibraryChangeDiff.newData.relatedArtifacts.forEach((artifact: any) => {
-    // Handles case of new conditions being added
-    if ('operation' in artifact) {
-      const op = artifact.operation
-      if (op?.type === OPERATION_TYPES.INSERT && op?.newValue?.extension?.length) {
-        const conditionNames =
-          op.newValue.extension
-            ?.map((extension: any) => {
-              // only consider CRMI intendedUsageContext extensions that represent conditions (focus)
-              const isCrmi = extension?.url && extension.url.endsWith('crmi-intendedUsageContext')
-              const vuc = extension?.valueUsageContext
-              const isFocus = !!vuc && vuc?.code?.code === 'focus'
-              if (isCrmi && isFocus) {
-                return vuc?.valueCodeableConcept?.text
-              }
-              return undefined
-            })
-            ?.filter((i: any) => i) || []
-        conditions.push(...conditionNames)
+  return [...after.entries()].filter(([coding]) => !before.has(coding)).map(([, text]) => text)
+}
+
+/**
+ * Every condition a program manifest declares, keyed by coding rather than display text.
+ *
+ * Conditions live as `crmi-intendedUsageContext` extensions with a `focus` code on the manifest's
+ * relatedArtifact entries.
+ */
+const conditionsBySystemAndCode = (library: fhir4.Library | undefined): Map<string, string> => {
+  const found = new Map<string, string>()
+  library?.relatedArtifact?.forEach((relatedArtifact) => {
+    ;(relatedArtifact.extension ?? []).forEach((extension: any) => {
+      if (!extension?.url?.endsWith('crmi-intendedUsageContext')) {
+        return
       }
+      const usageContext = extension.valueUsageContext
+      if (usageContext?.code?.code !== 'focus') {
+        return
+      }
+      const concept = usageContext.valueCodeableConcept
+      const coding = concept?.coding?.[0]
+      if (!coding?.code) {
+        return
+      }
+      found.set(`${coding.system ?? ''}|${coding.code}`, concept?.text || coding?.display || '')
+    })
+  })
+  return found
+}
+
+type GroupingLeafCondition = {
+  system?: string
+  codeValue?: string
+  display?: string
+  version?: string
+  codeSystemName?: string
+  operation?: { type: string }
+}
+
+type GroupingLeaf = {
+  memberOid?: string
+  name?: string
+  title?: string
+  status?: string
+  codeSystems?: { name?: string; oid?: string }[]
+  conditions?: GroupingLeafCondition[]
+  priority?: { value?: string; operation?: { type: string } }
+  operation?: { type: string }
+}
+
+/**
+ * The Grouping List: one row per changed leaf value set, or one per condition where it has them.
+ *
+ * Build from `leafValueSets` directly rather than through `collector`. The walker treated every
+ * marked condition and marked priority like a renderable change. Those were collected as rows of their
+ * own and rendered blank, except for the Change column. Reading the leaves means such a row cannot be
+ * constructed in the first place.
+ */
+const buildGroupingListRows = (oldLeaves: GroupingLeaf[] = [], newLeaves: GroupingLeaf[] = []) => {
+  const conditionKey = (condition: GroupingLeafCondition) => `${condition?.system ?? ''}|${condition?.codeValue ?? ''}`
+
+  // A condition is marked on the side that states it, so a removed one exists only in oldData.
+  const conditionsFor = (newLeaf: GroupingLeaf, oldLeaf?: GroupingLeaf) => {
+    const kept = newLeaf.conditions ?? []
+    const keptKeys = new Set(kept.map(conditionKey))
+    const removed = (oldLeaf?.conditions ?? []).filter((c) => c?.operation && !keptKeys.has(conditionKey(c)))
+    return [...kept, ...removed]
+  }
+
+  // The leaf's own change. A repin is not reported as any content that came with the new version is already reported in the
+  // Code List. Its conditions and priority are still compared, so a real change carried by a repinned release is not lost.
+  const leafChangeOf = (leaf?: GroupingLeaf) => {
+    const own = leaf?.operation?.type
+    if (own && own !== OPERATION_TYPES.REPLACE) {
+      return changeText(own, LEAF_CHANGE_TEXT)
+    }
+    return leaf?.priority?.operation ? 'Updated priority' : undefined
+  }
+
+  const rows: any[][] = []
+  const pushRowsFor = (leaf: GroupingLeaf, conditions: GroupingLeafCondition[], change?: string) => {
+    const emit = (condition?: GroupingLeafCondition) =>
+      rows.push([
+        // Prefer readable title to name when present
+        leaf.title || leaf.name,
+        leaf.memberOid,
+        leaf.priority?.value,
+        leaf.codeSystems?.[0]?.name ?? '',
+        leaf.codeSystems?.[0]?.oid ?? '',
+        leaf.status,
+        condition?.display ?? '',
+        condition?.codeValue ?? '',
+        condition?.codeSystemName ?? '',
+        condition?.version ?? '',
+        // a condition that moved says so for itself; the rest inherit the leaf's change
+        changeText(condition?.operation?.type, CONDITION_CHANGE_TEXT) ?? change
+      ])
+    if (conditions.length) {
+      conditions.forEach(emit)
+    } else {
+      emit()
+    }
+  }
+
+  const oldByOid = new Map(oldLeaves.map((leaf) => [leaf.memberOid, leaf]))
+  const newOids = new Set(newLeaves.map((leaf) => leaf.memberOid))
+
+  newLeaves.forEach((leaf) => {
+    const oldLeaf = oldByOid.get(leaf.memberOid)
+    const conditions = conditionsFor(leaf, oldLeaf)
+    // a replace is recorded on both sides, so read the old side too when this one says nothing
+    const leafChange = leafChangeOf(leaf) ?? leafChangeOf(oldLeaf)
+    // A leaf that changed in its own right lists every condition it holds, each reporting the
+    // leaf's change. With no change of its own there is nothing for an unchanged condition to
+    // report, so only the conditions that moved get a row.
+    const reportable = leafChange ? conditions : conditions.filter((condition) => condition?.operation?.type)
+    if (leafChange || reportable.length) {
+      pushRowsFor(leaf, reportable, leafChange)
     }
   })
 
-  return conditions
+  // A leaf whose OID is absent from the new release was removed. create-changelog does not always
+  // record one, and it records a positional delete on leaves that in fact survived.
+  oldLeaves
+    .filter((leaf) => !newOids.has(leaf.memberOid))
+    .forEach((leaf) => pushRowsFor(leaf, leaf.conditions ?? [], changeText(OPERATION_TYPES.DELETE, LEAF_CHANGE_TEXT)))
+
+  return rows
 }
 
 /**
@@ -227,7 +342,7 @@ const generateReadMeSheet = (
   workbook: ExcelJS.Workbook,
   sourceGrouperLibrary: fhir4.Library,
   targetGrouperLibrary: fhir4.Library,
-  rootLibraryChangesJson: any
+  newConditions: string[]
 ) => {
   const readmeSheet = workbook.addWorksheet('Read Me')
   readmeSheet.getColumn('A').width = 30
@@ -250,7 +365,7 @@ const generateReadMeSheet = (
     ['RCTC OID', getOid(targetGrouperLibrary)],
     ['RCTC Definition Version', targetGrouperLibrary?.version],
     ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
-    ['RCTC Release Label', targetGrouperLibrary?.version]
+    ['RCTC Release Label', getReleaseLabel(targetGrouperLibrary)]
   ])
   readmeSheet.addRow([]) // Add new line
   const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
@@ -261,7 +376,7 @@ const generateReadMeSheet = (
     ['RCTC OID', getOid(sourceGrouperLibrary)],
     ['RCTC Definition Version', sourceGrouperLibrary?.version],
     ['RCTC Definition Effective Start Date', sourceGrouperLibrary?.effectivePeriod?.start],
-    ['RCTC Release Label', sourceGrouperLibrary?.version]
+    ['RCTC Release Label', getReleaseLabel(sourceGrouperLibrary)]
   ])
   const cellsToStyle = [currentVersion, previousVersion]
   cellsToStyle.forEach((rows) => {
@@ -287,14 +402,11 @@ const generateReadMeSheet = (
 
   readmeSheet.addRows([[], []]) // Add new line
   // New Conditions
-  let newConditions = extractConditions(rootLibraryChangesJson)
-
   if (newConditions.length > 0) {
     const conditionTitle = readmeSheet.addRow(['New Conditions'])
     conditionTitle.font = { bold: true }
-    newConditions = uniq(newConditions)
-    newConditions.forEach((newConditions: string) => {
-      readmeSheet.addRow([newConditions])
+    uniq(newConditions).forEach((condition: string) => {
+      readmeSheet.addRow([condition])
     })
   }
 }
@@ -386,8 +498,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
         ['Publisher', grouperVs.publisher],
         ['Purpose', grouperVs.purpose],
         ['Description', grouperVs.description],
-        ['Version', grouperVs.version],
-        ['Priority', page.oldData?.priority?.value || page.newData?.priority?.value]
+        ['Version', grouperVs.version]
       ]
       groupingValueSetSheet.addRows(vsInfo)
       // Bold the headers
@@ -397,58 +508,10 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       })
 
       // ValueSet CodeSystem Changes
-      const groupingListRows: any[] = []
+      const groupingListRows = buildGroupingListRows(page.oldData?.leafValueSets, page.newData?.leafValueSets)
 
       const groupingTableStartRowCount = vsInfo.length + 3
-      let groupingRowsAdded = 0 // Every grouping row shifts the Code List table start down
-      const fillGroupingListTableRows = (data: any) => {
-        Object.entries(data).forEach(([key, change]) => {
-          // @ts-ignore todo: fix this
-          change?.forEach((rowValue) => {
-            const { conditions, memberOid, name, codeSystems, status, priority } = rowValue
-            const vsCodeSystemName = codeSystems?.[0]?.name || ''
-            const vsCodeSystemOid = codeSystems?.[0]?.oid || ''
-            const pushGroupingRow = (condition?: any) => {
-              groupingRowsAdded += 1
-              groupingListRows.push([
-                name,
-                memberOid,
-                priority?.value,
-                vsCodeSystemName,
-                vsCodeSystemOid,
-                status,
-                condition?.display ?? '',
-                condition?.code ?? '',
-                condition?.codeSystemName ?? '',
-                condition?.version ?? '',
-                key
-              ])
-            }
-            if (conditions?.length) {
-              conditions.forEach((condition: any) => pushGroupingRow(condition))
-            } else {
-              pushGroupingRow()
-            }
-          })
-        })
-      }
-      // Page records a delete on oldData only and an insert on newData only, but a replace is on both
-      // so merging the two sides emits a replaced leaf twice, under its old and its new name. Drop
-      // only that duplicate half and leave every other change type to mergeChanges.
-      const oldLeafChanges = collector(page.oldData?.leafValueSets)
-      const newLeafChanges = collector(page.newData?.leafValueSets)
-      const replacedOidsInNewData = new Set(
-        (newLeafChanges[OPERATION_TYPES.REPLACE] ?? []).map((leaf: any) => leaf?.memberOid)
-      )
-      const oldLeafChangesWithoutDuplicateReplaces: CollectedChangeMap = {}
-      Object.entries(oldLeafChanges).forEach(([change, leaves]) => {
-        oldLeafChangesWithoutDuplicateReplaces[change] =
-          change === OPERATION_TYPES.REPLACE
-            ? (leaves?.filter((leaf: any) => !replacedOidsInNewData.has(leaf?.memberOid)) ?? [])
-            : leaves
-      })
-      const leafValueSets = mergeChanges(oldLeafChangesWithoutDuplicateReplaces, newLeafChanges)
-      fillGroupingListTableRows(leafValueSets)
+      const groupingRowsAdded = groupingListRows.length // Every grouping row shifts the Code List table start down
 
       if (groupingListRows.length > 0) {
         const groungListTableTitle = groupingValueSetSheet.getCell(`A${groupingTableStartRowCount}`)
@@ -460,17 +523,17 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           headerRow: true,
           style: {},
           columns: [
-            { name: 'Name' },
-            { name: 'OID' },
-            { name: 'Priority' },
-            { name: 'Code System' },
-            { name: 'Code System OID' },
-            { name: 'Status' },
-            { name: 'Condition Name' },
-            { name: 'Condition Code' },
-            { name: 'Condition Code System' },
-            { name: 'Condition Code Version' },
-            { name: 'Change' }
+            { name: 'Name', filterButton: true },
+            { name: 'OID', filterButton: true },
+            { name: 'Priority', filterButton: true },
+            { name: 'Code System', filterButton: true },
+            { name: 'Code System OID', filterButton: true },
+            { name: 'Status', filterButton: true },
+            { name: 'Condition Name', filterButton: true },
+            { name: 'Condition Code', filterButton: true },
+            { name: 'Condition Code System', filterButton: true },
+            { name: 'Condition Code Version', filterButton: true },
+            { name: 'Change', filterButton: true }
           ],
           rows: groupingListRows
         })
@@ -482,10 +545,13 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       const fillCodeRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
-            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName } = rowValue
-            const status = startCase(grouperVs?.status || '')
-            const remapInfo = status === 'Active' ? 'No' : 'Yes'
-            codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, remapInfo, key])
+            const { display: descriptor, memberOid, version, codeValue: code, codeSystemName, inactive } = rowValue
+            const status = inactive == null ? '' : inactive ? 'Inactive' : 'Active'
+            // The manual change log leaves Remap Info empty on every row
+            // TODO:: is there a real value we can assign here?
+            const remapInfo = ''
+            const change = changeText(key, CODE_CHANGE_TEXT)
+            codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, remapInfo, change])
           })
         })
       }
@@ -531,5 +597,5 @@ export {
   generateGrouperValuesetSheet,
   autosortTable,
   changeLogDiffOperation,
-  extractConditions
+  extractNewConditions
 }

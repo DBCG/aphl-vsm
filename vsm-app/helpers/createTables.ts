@@ -153,82 +153,70 @@ const generateMainChangeText = (grouperListItem: any) => {
     ?.filter((c: { operation: any }) => c?.operation)
     ?.map((i: { operation: { type: any } }) => i?.operation?.type)) || [] as string[]
 
-  // incomplete possibilities
+  // A repin is deliberately not reported. The branches below still run for such
+  // a leaf, so a condition or priority change it carries is kept.
   if (grouperListItem?.operation?.type === 'insert') {
     return 'Added VS'
   } else if (grouperListItem?.operation?.type === 'delete') {
     return 'Removed VS'
-  } else if (allConditionChangeTypes.find((c: any) => c === 'replace')) {
-    return 'Update Conditions'
-  } else if (allConditionChangeTypes.length == 1) {
+  } else if (allConditionChangeTypes.length === 1) {
     return `${allConditionChangeTypes[0]} Conditions`
+  } else if (allConditionChangeTypes.length > 1) {
+    // e.g. one condition added and another removed. Without this the row reported no change at all
+    // and the table's own filter hid it.
+    return 'Updated Conditions'
   } else if (grouperListItem?.priority?.operation) {
     return 'Updated Priority'
-  } else if (grouperListItem?.operation?.type === 'replace') {
-    // Only an operation on a compose elements specific leaf's reference tells us the pin moved. A full
-    // compose element replace tags every leaf in the grouper, so fall back to a generic label
-    // there rather than claiming a version change.
-    return grouperListItem?.operation?.path?.includes('.valueSet') ? 'Updated VS Version' : 'Updated VS'
   } else {
     return '' // ?
   }
 }
 
-// conditions can be added, removed, or updated
-// could be updates to code, text, system
-// might need to combine multiple "replace" fields
+// conditions can be added, or removed
+// The words the change text starts with drive the row colour - see generateConditionColor.
+const CONDITION_CHANGE_TEXT: Record<string, string> = {
+  insert: 'Add condition',
+  delete: 'Remove condition',
+}
+
+// How a code change reads
+const CODE_CHANGE_TEXT: Record<string, string> = {
+  insert: 'Added',
+  delete: 'Removed',
+  inactive: 'Inactive',
+  'updated code description': 'Updated Code Description'
+}
+
+// How a whole leaf value set joining or leaving a grouper reads
+const LEAF_CHANGE_TEXT: Record<string, string> = {
+  insert: 'Added',
+  delete: 'Removed'
+}
+
+/**
+ * A change operation type in readable format rather than the raw operation type.
+ *
+ * Falls back to the raw type, so a type gaining no wording yet is still reported rather than
+ * silently ignored.
+ */
+const changeText = (type: string | undefined, words: Record<string, string>) =>
+  type ? words[type] ?? type : undefined
+
+/**
+ * One renderable row per condition.
+ *
+ * @param hideConditionChangeText for a value set removed outright, where its own "Removed VS" already
+ *   says it and repeating the news per condition adds nothing
+ */
 const generateConditionUpdates = (conditionsList: any[], hideConditionChangeText: boolean) => {
   if (!conditionsList) return []
-  return conditionsList?.map(li => {
-    // if an operation occurred at all, return details
-    if (li.operation) {
-      // insert, also handle text field... thi
-      if (li.operation.type === 'replace' && li.operation.path.endsWith('.code')) {
-        return ({
-          conditionChange: `Replace condition code ${li.operation.oldValue} with ${li.code}`,
-          conditionName: undefined, // isn't currently being passed through...
-          conditionCodeSystemVersion: undefined, // same here
-          conditionCode: li.code,
-          conditionSystem: li.system,
-        })
-      } else if (li.operation.type === 'replace' && li.operation.path.endsWith('.text')) {
-        return ({
-          conditionChange: `Replace condition text ${li.operation.oldValue} with ${li.text}`,
-          conditionName: undefined, // isn't currently being passed through...
-          conditionCodeSystemVersion: undefined, // same here
-          conditionCode: li.code,
-          conditionSystem: li.system,
-        })
-      } else if (li.operation.type === 'insert' && li.operation.path.endsWith('.extension')) {
-        return ({
-          conditionChange: 'Add condition',
-          conditionName: li?.operation?.newValue?.text, // is the text field, not name...
-          conditionCodeSystemVersion: undefined, // same here
-          conditionCode: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.code,
-          conditionSystem: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.system,
-        })
-      } else if (li.operation.type === 'delete') {
-        const splitIndex = li.operation.path.lastIndexOf('.')
-        const itemToDelete = splitIndex ? li?.operation?.path?.slice?.(splitIndex + 1) : null
-        return ({
-          conditionChange: hideConditionChangeText ? '' : `Delete field: ${itemToDelete}`,
-          conditionName: undefined, // isn't currently being passed through...
-          conditionCodeSystemVersion: undefined, // same here
-          conditionCode: li.code,
-          conditionSystem: li.system,
-        })
-      }
-      // if no operation occurred, just return condition info
-    } else {
-      return ({
-        conditionChange: undefined,
-        conditionName: undefined,
-        conditionCodeSystemVersion: undefined,
-        conditionSystem: li.system,
-        conditionCode: li.code
-      })
-    }
-  })
+  return conditionsList.map(li => ({
+    conditionChange: hideConditionChangeText ? '' : CONDITION_CHANGE_TEXT[li?.operation?.type],
+    conditionName: li?.display,
+    conditionCodeSystemVersion: li?.version,
+    conditionCode: li?.codeValue,
+    conditionSystem: li?.system
+  }))
 }
 
 const uniqueCodeSystems = (csArray: { name: string, oid: string }[]): { name: string, oid: string }[] => (uniqWith(
@@ -242,6 +230,29 @@ const uniqueCodeSystems = (csArray: { name: string, oid: string }[]): { name: st
 // need title in grouperlist for vs table
 // need code system for valueset
 // need status for code system (e.g. published?)
+type ValueSetRow = {
+  change: string
+  codeSystems: { name: string, oid: string }[]
+  name: any
+  oid: any
+  priority: any
+  conditionUpdates: ReturnType<typeof generateConditionUpdates>
+}
+
+/**
+ * Every condition worth showing for a surviving leaf, from both sides.
+ *
+ * A condition is marked on the side that states it, so one the new release dropped exists only in
+ * oldData.
+ */
+const conditionsFromBothSides = (newLeaf: any, oldLeaf: any) => {
+  const kept = newLeaf?.conditions ?? []
+  const codingOf = (condition: any) => `${condition?.system ?? ''}|${condition?.codeValue ?? ''}`
+  const keptCodings = new Set(kept.map(codingOf))
+  const removed = (oldLeaf?.conditions ?? []).filter((c: any) => c?.operation && !keptCodings.has(codingOf(c)))
+  return [...kept, ...removed]
+}
+
 // need to always include text on conditions items
 const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
   // doing this here because it's not explicitly noted in the changelog
@@ -250,16 +261,19 @@ const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
 
   const deletedLeafIds = allOldLeafIds.filter(id => !newLeafIds.includes(id))
   const deletedValueSets = grouperPage?.oldData?.leafValueSets?.filter(vs => deletedLeafIds?.includes(vs?.memberOid)) || []
+  const oldLeafByOid = new Map((grouperPage?.oldData?.leafValueSets ?? []).map(leaf => [leaf?.memberOid, leaf]))
 
-  let newData: { change: string; codeSystems: { name: string; oid: string }[]; name: any; oid: any; priority: any; conditionUpdates: ({ conditionChange: string; conditionName: any; conditionCodeSystemVersion: undefined; conditionCode: any; conditionSystem: any } | { conditionChange: undefined; conditionName: undefined; conditionCodeSystemVersion: undefined; conditionSystem: any; conditionCode: any } | undefined)[] }[] = grouperPage?.newData?.leafValueSets?.map(gi => {
+  let newData: ValueSetRow[] = grouperPage?.newData?.leafValueSets?.map(gi => {
     const newCodeSystems = uniqueCodeSystems(gi?.codeSystems || [])
+    const conditions = conditionsFromBothSides(gi, oldLeafByOid.get(gi?.memberOid))
     return ({
-      change: generateMainChangeText(gi),
+      change: generateMainChangeText({ ...gi, conditions }),
       codeSystems: newCodeSystems,
-      name: gi.name,
+      // The title is more readable. Fall back to name when a leaf has no title.
+      name: gi.title || gi.name,
       oid: gi.memberOid,
       priority: gi.priority.value,
-      conditionUpdates: generateConditionUpdates(gi.conditions, false)
+      conditionUpdates: generateConditionUpdates(conditions, false)
     })
   }) || []
 
@@ -271,7 +285,7 @@ const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
       return ({
         change: 'Removed VS',
         codeSystems: oldCodeSystems,
-        name: vsItem.name,
+        name: vsItem.title || vsItem.name,
         oid: vsItem.memberOid,
         priority: vsItem.priority.value,
         conditionUpdates: generateConditionUpdates(vsItem.conditions, true)
@@ -300,30 +314,16 @@ const formatCodeData = ({ codeItems, defaultChange }: FormatCodeItems) => {
 }
 
 const generateCodeChangesTable = (grouperPage: GrouperVsPage) => {
-  const newCodes = grouperPage?.newData?.codes || []
-  const oldCodes = grouperPage?.oldData?.codes || []
-  let codeChangeData = formatCodeData({ codeItems: newCodes });
+  // create-changelog marks a deleted code on the old side, keyed by member value set, system and code.
+  // This used to derive deletions here by matching the two sides on codeValue + system + version, which
+  // ignored the member value set - so a code dropped from one referenced value set was suppressed
+  // whenever another value set in the grouper still carried it.
+  const deletedCodes = (grouperPage?.oldData?.codes || []).filter((code) => code?.operation?.type === 'delete')
 
-  const deletedCodes = oldCodes?.filter((oldCodeItem) => {
-    const hasMatchInNewCodes: boolean = Boolean(
-      newCodes?.find((newCodeItem) => {
-        return (
-          newCodeItem?.codeValue === oldCodeItem?.codeValue &&
-          newCodeItem?.system === oldCodeItem?.system &&
-          newCodeItem?.version === oldCodeItem?.version
-        );
-      })
-    );
-    return !hasMatchInNewCodes
-  }) || [];
-
-  // deletions are not tracked by create-changelog, so do manually:
-  if (deletedCodes.length) {
-    const formattedDeletions = formatCodeData({ codeItems: deletedCodes, defaultChange: 'Deleted' })
-    codeChangeData = [...codeChangeData, ...formattedDeletions]
-  }
-
-  return codeChangeData
+  return [
+    ...formatCodeData({ codeItems: grouperPage?.newData?.codes || [] }),
+    ...formatCodeData({ codeItems: deletedCodes})
+  ]
 }
 
 const generateGrouperPages = (allGrouperPages: GrouperVsPage[]) => {
@@ -401,4 +401,4 @@ const createTableData = (diffData: DiffData) => {
   })
 }
 
-export { createTableData }
+export { createTableData, CONDITION_CHANGE_TEXT, CODE_CHANGE_TEXT, LEAF_CHANGE_TEXT, changeText }
