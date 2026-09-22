@@ -236,7 +236,6 @@ const findMatchingVsetUrls = async ({
       return {
         request: {
           method: 'GET' as fhir4.BundleEntryRequest["method"],
-          resourceType: 'ValueSet',
           url: searchUrl
         }
       }
@@ -266,11 +265,15 @@ const findMatchingVsetUrls = async ({
       const expansions = await Promise.allSettled(
         allVsacLeafs.map((leaf: fhir4.ValueSet) => {
           setParameterVsVersion(parameters, leaf)
-          const parametersFetchOptions = getExpandFetchOptions(parameters)
           const oid = extractOidFromUrl(leaf.url!)
-          const url = `${vsacFhirClient.baseUrl}/ValueSet/${oid}/$expand`
-          Logger.getLogger().debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(parametersFetchOptions)}`)
-          return fetch(url, parametersFetchOptions).then(i => i.json())
+          const expandUrl = buildExpandUrl(`${vsacFhirClient.baseUrl}/ValueSet/${oid}/$expand`, parameters)
+          Logger.getLogger().debug(`Running $expand to vsac url: ${expandUrl}`)
+          return fetch(expandUrl, {
+            headers: {
+              // @ts-ignore
+              'Authorization': vsacFhirClient.customHeaders['Authorization']
+            }
+          }).then(i => i.json())
         }
       ))
 
@@ -333,21 +336,16 @@ const findMatchingVsetUrls = async ({
   return matchingValueSetUrlsAndCodes
 }
 
-const getExpandFetchOptions = (parameters: fhir4.Parameters) => {
-  if (parameters?.parameter?.length) {
-    return {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(parameters)
-    } as RequestInit
-  } else {
-    return {
-      method: 'GET',
-      headers: {}
-    } as RequestInit
-  }
+const buildExpandUrl = (baseUrl: string, parameters: fhir4.Parameters): string => {
+  const params = new URLSearchParams()
+  parameters.parameter?.forEach(p => {
+    const value = p.valueCanonical || p.valueString
+    if (p.name && value) {
+      params.append(p.name, value)
+    }
+  })
+  const queryString = params.toString()
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl
 }
 
 export {
@@ -355,7 +353,7 @@ export {
   findMatches,
   getSpecifiedGroupers,
   arrangeGroupersByLeafRef,
-  getExpandFetchOptions,
+  buildExpandUrl,
   findMatchingVsetUrls,
   setParameterVsVersion
 }
