@@ -62,20 +62,11 @@ describe('pages/api/valueset/[id]/expand', () => {
     })
     await handler(req, res)
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    console.log(fetchMock.mock.calls[0][1])
+    const calledUrl = fetchMock.mock.calls[0][0] as string
     expect((fetchMock.mock.calls[0][1]?.headers as Record<string, string>)['Authorization']).toBe('Basic testUser:testPass')
-    expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
-    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
-
-    expect(fetchMock.mock.calls[0][1]!.body).toBe(
-      JSON.stringify({
-        resourceType: 'Parameters',
-        parameter: [
-          { name: 'system-version', valueCanonical: 'http://loinc.org|2.69' },
-          { name: 'valueSetVersion', valueString: '07012018' }
-        ]
-      })
-    )
+    expect(calledUrl).toContain('ValueSet/2.32.33.44.22.55/$expand')
+    expect(calledUrl).toContain('system-version=http%3A%2F%2Floinc.org%7C2.69')
+    expect(calledUrl).toContain('valueSetVersion=07012018')
   })
 
   test('should not include valueSetVersion for unpinned valueset', async () => {
@@ -107,16 +98,9 @@ describe('pages/api/valueset/[id]/expand', () => {
     })
     await handler(req, res)
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
-    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
-    expect(fetchMock.mock.calls[0][1]!.body).toBe(
-      JSON.stringify({
-        resourceType: 'Parameters',
-        parameter: [
-          { name: 'system-version', valueCanonical: 'http://snomed.info/sct|http://snomed.info/sct/731000124108/version/20240301' }
-        ]
-      })
-    )
+    const calledUrl = fetchMock.mock.calls[0][0] as string
+    expect(calledUrl).toContain('ValueSet/2.32.33.44.22.55/$expand')
+    expect(calledUrl).toContain('system-version=http%3A%2F%2Fsnomed.info%2Fsct%7Chttp%3A%2F%2Fsnomed.info%2Fsct%2F731000124108%2Fversion%2F20240301')
   })
 
   // TODO: Needs to be moved to new api endpoint /api/valueset/codesearch

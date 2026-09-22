@@ -113,7 +113,7 @@ const CodeSearch = ({ program, router }: Props) => {
           const body: ExpandRequest['body'] = {
             codeSystem: systemToFind,
             groupersToSearch: grouperIdsToSearch,
-            codeToFind,
+            codeToFind: codeToFind,
             expansionParameters: getProgramManifestVersions(program)
           }
 
@@ -126,7 +126,9 @@ const CodeSearch = ({ program, router }: Props) => {
           }).then((res) => res.json())
 
           if (matches.error) {
-            // handle error & return
+            setError(matches.error)
+            setLoadingCodeSearch(false)
+            return
           }
           const matchesData = convertToArrayForTable(matches)
           setMatchingValueSetUrls(matchesData)
@@ -147,7 +149,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'System',
         id: 'vs-code-system',
-        selector: (row: Row) => row.codeData.system!,
+        selector: (row: Row) => row?.codeData?.system!,
         sortable: false,
         maxWidth: '180px',
         wrap: true
@@ -155,7 +157,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'Code',
         id: 'vs-code',
-        selector: (row: Row) => row.codeData.code!,
+        selector: (row: Row) => row?.codeData?.code!,
         sortable: false,
         maxWidth: '160px',
         wrap: true

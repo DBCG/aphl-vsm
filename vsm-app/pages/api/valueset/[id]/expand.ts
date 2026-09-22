@@ -3,7 +3,7 @@ import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
-import { getExpandFetchOptions, setParameterVsVersion } from '@/helpers/server/expandUtils'
+import { buildExpandUrl, setParameterVsVersion } from '@/helpers/server/expandUtils'
 import { extractOidFromUrl } from '@/utils'
 import { VSMSession } from '@/helpers/rolesHelper'
 
@@ -52,13 +52,15 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse, session
     }
     const oid = extractOidFromUrl(valueSet.url!)
     const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
-    const url = vsacFhirClient?.baseUrl + `/ValueSet/${oid}/$expand`
-    const fetchOptions = getExpandFetchOptions(parameters) as RequestInit
-    // @ts-ignore
-    fetchOptions.headers['Authorization'] = vsacFhirClient.customHeaders['Authorization']
+    const expandUrl = buildExpandUrl(`${vsacFhirClient?.baseUrl}/ValueSet/${oid}/$expand`, parameters)
 
-    const response = await fetch(url, fetchOptions).then((i) => i.json())
-    Logger.getLogger().debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
+    const response = await fetch(expandUrl, {
+      headers: {
+        // @ts-ignore
+        'Authorization': vsacFhirClient.customHeaders['Authorization']
+      }
+    }).then((i) => i.json())
+    Logger.getLogger().debug(`Running $expand to vsac url: ${expandUrl}`)
 
     res.status(200).send(response)
   } catch (e: any) {
