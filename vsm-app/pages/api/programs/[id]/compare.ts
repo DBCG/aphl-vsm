@@ -4,6 +4,7 @@ import ExcelJS from 'exceljs'
 import Logger from '@/helpers/server/logger'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import {
+  extractNewConditions,
   generateReadMeSheet,
   generatePlanDefSheet,
   generateRCTCSheet,
@@ -45,7 +46,11 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
 
   const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.resourceType === 'ValueSet')
 
-  generateReadMeSheet(workbook, sourceGrouperLibrary, targetGrouperLibrary, changeJson.pages[0])
+  // conditions come from the program manifests, not the changelog - the changelog's own conditions
+  // arrays are empty for every relatedArtifact entry
+  const newConditions = extractNewConditions(sourceLibrary, targetLibrary)
+
+  generateReadMeSheet(workbook, sourceGrouperLibrary, targetGrouperLibrary, newConditions)
   //TODO:: Resolve issues with diff for these sheets and restore generation. See:https://alphora.atlassian.net/browse/APHL-1428
   //generatePlanDefSheet(workbook, changeJson.pages.filter((page: any) => page.resourceType === 'PlanDefinition')?.[0])
   //generateRCTCSheet(workbook, targetGrouperLibrary, grouperLibDiffJson)

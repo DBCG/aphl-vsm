@@ -5,12 +5,7 @@ import { cloneDeep } from 'lodash'
 import { FormGroup, FormControlLabel, Checkbox } from '@mui/material'
 import { CodeSystemTableItem, GrouperPage, ItemToRemoveVsFilter, ValueSetFilterItem } from './DiffViewerTypes'
 import { NoDataTableComponent } from './NoDataTableComponent'
-
-const COLORS = {
-  add: '#EBEFE9',
-  remove: '#FAE6E5',
-  update: '#FDF4DD'
-}
+import { formatRowStyles } from './diffRowColors'
 
 const customStyle = {
   subHeader: {
@@ -71,18 +66,7 @@ const GrouperCodesTable = ({ grouperTableData, id }: { grouperTableData: Grouper
     return clonedOptions
   }
 
-  const conditionalRowStyles = [
-    { when: (row: CodeSystemTableItem) => row?.change?.toLowerCase() === 'insert',
-      style: {
-        backgroundColor: COLORS.add
-      }
-    },
-    { when: (row: CodeSystemTableItem) => row?.change?.toLowerCase() === 'deleted',
-    style: {
-      backgroundColor: COLORS.remove
-    }
-  }
-]
+  const conditionalRowStyles = formatRowStyles<CodeSystemTableItem>(['insert'], ['delete'])
 
 // need to do this manually for deletion
 const removeValueSetFilterItems = (allFilterItems: ValueSetFilterItem[]) => {
