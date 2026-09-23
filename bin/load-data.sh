@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Abort on the first failing command.
+set -euo pipefail
+
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 CONDITIONS=${DIR}/../documentation/demo-data/valueset-rckms-condition-codes.json
@@ -14,19 +17,19 @@ FHIR_SERVER="${FHIR_SERVER:-http://localhost:8082/fhir}"
 HEADERS=("-H" "Content-Type: application/json")
 
 # Conditionally add Authorization header if AUTH_TOKEN is set
-if [[ -n "$AUTH_TOKEN" ]]; then
+if [[ -n "${AUTH_TOKEN:-}" ]]; then
     HEADERS+=("-H" "Authorization: Basic $AUTH_TOKEN")
 fi
+
+# `--fail-with-body` makes curl exit non-zero on a 4xx/5xx while still printing
+# the OperationOutcome, so a failed load stops the script instead of silently
+# leaving the server half-populated.
+CURL_OPTS=(--fail-with-body --silent --show-error)
 
 # Make sure user is aware of the FHIR_SERVER being used
 # and offer exit if wrong
 yesOptions=("y" "Y")
-noOptions=("n" "N")
-echo "This will expunge and reset all data on this FHIR server: $FHIR_SERVER"
-echo "Continue? (y/n)"
-echo ""
-read selection
-if [ "$CI" != "true" ]; then
+if [ "${CI:-}" != "true" ]; then
   echo "This will expunge and reset all data on this FHIR server: $FHIR_SERVER"
   echo "Continue? (y/n)"
   echo ""
@@ -38,8 +41,23 @@ if [ "$CI" != "true" ]; then
   fi
 fi
 
+
+# POST via curl, capturing the response body rather than logging it.
+# On failure the captured body is the OperationOutcome saying what went wrong, so print it before aborting.
+post() {
+  local body status
+  set +e
+  body=$(curl "${CURL_OPTS[@]}" "$@")
+  status=$?
+  set -e
+  if [ $status -ne 0 ]; then
+    echo "  request failed (curl exit $status): $body" >&2
+    return $status
+  fi
+}
+
 echo "Expunging all data from $FHIR_SERVER"
-curl --location "$FHIR_SERVER/\$expunge" \
+post --location "$FHIR_SERVER/\$expunge" \
   "${HEADERS[@]}" \
   --data '{
     "resourceType": "Parameters",
@@ -52,14 +70,13 @@ curl --location "$FHIR_SERVER/\$expunge" \
   }'
 
 echo "Loading data into $FHIR_SERVER"
-# if no args, print a help message and exit
-curl -d @${SEARCHPARAMS} "${HEADERS[@]}" -v $FHIR_SERVER
-curl -d @${CONDITIONS} "${HEADERS[@]}" -v $FHIR_SERVER
-curl -d @${USERRESOURCES} "${HEADERS[@]}" -v $FHIR_SERVER
-curl -d @${ENDPOINTS} "${HEADERS[@]}" -v $FHIR_SERVER
-# curl -d @${SMALLSPECIFICATION} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
+for bundle in "${SEARCHPARAMS}" "${CONDITIONS}" "${USERRESOURCES}" "${ENDPOINTS}"; do
+  echo "  posting $(basename "$bundle")"
+  post -d @"${bundle}" "${HEADERS[@]}" "$FHIR_SERVER"
+done
 
+echo "  posting eRSD import"
 jq --arg url "$FHIR_SERVER" '(.parameter[] | select(.name == "appAuthoritativeUrl")).valueString = $url' "$IMPORT_DATA" | \
-curl -d @- --location ${FHIR_SERVER}/\$ersd-v2-import "${HEADERS[@]}"
+post -d @- --location "${FHIR_SERVER}/\$ersd-v2-import" "${HEADERS[@]}"
 
 echo "All Done"
