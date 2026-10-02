@@ -30,7 +30,7 @@ spec:
         app: hapi-fhir-jpa-server-starter
     spec:
       containers:
-        - image: hapiproject/hapi:v8.10.0-3
+        - image: hapiproject/hapi:v8.12.0-2
           imagePullPolicy: Always
           name: hapi-fhir-jpa-server-starter
           resources:
