@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetch as f } from 'undici'
+import FhirKitClient from 'fhir-kit-client'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { resolveTerminologyEndpointForCanonical } from '@/helpers/server/resolveTerminologyEndpoint'
 import { getArtifactRoute } from '@/helpers/server/endpointResolution'
+import { getCodeSystemCatalogue } from '@/helpers/server/terminologyCapabilities'
 
 interface VersionsResponse {
   versions: string[]
@@ -24,8 +25,9 @@ interface ErrorResponse {
  *
  * Resolves the terminology Endpoint that should serve queries for the canonical
  * (longest-prefix artifactRoute match, falling back to the Endpoint with no
- * artifactRoute), then calls `CodeSystem?url={canonical}&_summary=true` against
- * it and returns the distinct `version` values.
+ * artifactRoute), then reads its TerminologyCapabilities catalogue
+ * (`/metadata?mode=terminology`) and returns the versions it lists for the
+ * canonical.
  */
 const getCodeSystemVersions = async (
   req: NextApiRequest,
@@ -53,36 +55,25 @@ const getCodeSystemVersions = async (
     return res.status(500).json({ error: 'Resolved Endpoint has no address configured' })
   }
 
-  const url = `${baseUrl}/CodeSystem?url=${encodeURIComponent(canonical)}&_count=200`
-  const headers: Record<string, string> = { Accept: 'application/fhir+json' }
-  if (credentials?.username && credentials?.password) {
-    const basic = Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')
-    headers.Authorization = `Basic ${basic}`
-  }
+  const basic =
+    credentials?.username && credentials?.password
+      ? Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')
+      : undefined
 
   Logger.getLogger().info(`Fetching CodeSystem versions for ${canonical} from ${baseUrl}`)
 
-  let bundle: fhir4.Bundle
+  // Request-scoped client
+  const client = new FhirKitClient({
+    baseUrl,
+    customHeaders: basic ? { Authorization: `Basic ${basic}` } : {}
+  })
+
+  let versions: string[]
   try {
-    const response = await f(url, { method: 'GET', headers })
-    if (!response.ok) {
-      const text = await response.text().catch(() => '')
-      Logger.getLogger().warn(`Terminology server returned ${response.status} for ${url}: ${text}`)
-      return res.status(502).json({ error: `Terminology server returned ${response.status}` })
-    }
-    bundle = (await response.json()) as fhir4.Bundle
+    versions = (await getCodeSystemCatalogue(client)).versionsByUri[canonical] || []
   } catch (e: any) {
     Logger.getLogger().error(`Failed to query terminology server: ${e?.message || e}`)
     return res.status(502).json({ error: e?.message || 'Failed to query terminology server' })
-  }
-
-  const versions: string[] = []
-  for (const entry of bundle.entry ?? []) {
-    const resource = entry.resource as fhir4.CodeSystem | undefined
-    const version = resource?.version
-    if (version && !versions.includes(version)) {
-      versions.push(version)
-    }
   }
 
   return res.status(200).json({
