@@ -217,7 +217,10 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   }, [selectedSystem, availableVersions, program?.id, isVSP, resourceType])
 
   const selectOptions = useMemo(() => {
-    return systemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
+    return systemSelections
+      ?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
+        // Terminology Capability returns systems unordered so sort manually
+      .sort((a, b) => a.label.localeCompare(b.label))
   }, [systemSelections])
 
   // VSP-only: filter the displayed manifest to only unversioned entries when the toggle is on.
@@ -550,7 +553,8 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
           name="codesystems"
           options={selectOptions}
         />
-        {Boolean(Object.keys(currentSelectedData).length) && (
+        { //TODO: revisit when we can reliably determine newest version instead of just default
+          /*{Boolean(Object.keys(currentSelectedData).length) && (
           <div style={{ position: 'relative', alignSelf: 'flex-end', marginLeft: '2em' }}>
             <Tooltip
               title={`Search for updates to the latest version CodeSystem`}
@@ -577,7 +581,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
               }}
             />
           </div>
-        )}
+        )}*/}
         <Button
           style={{ marginLeft: '10px' }}
           text="Scan ValueSets"
@@ -603,8 +607,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
             data={filterSelectedVersions(availableVersions, activeManifestData, selectedSystem) || []}
             progressComponent={<LoadingIndicator />}
             progressPending={pageLoading}
-            defaultSortAsc={false}
-            defaultSortFieldId={3}
             columns={[
               {
                 name: 'Name',
@@ -622,8 +624,9 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
                 name: 'Versions',
                 maxWidth: '120px',
                 selector: (row: ManifestData) => row.version,
-                sortable: true,
-                sortFunction: (a, b) => Date.parse(a?.date) - Date.parse(b?.date),
+                // These are the terminology server's display labels, kept in
+                // the order it lists them.
+                sortable: false,
                 wrap: true
               },
               {

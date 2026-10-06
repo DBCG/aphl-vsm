@@ -7,6 +7,7 @@ import { getVSPManifestVersions, setExpansionParametersForVSP } from '@/helpers/
 import Logger from '@/helpers/server/logger'
 import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 import { ExtendedManifestData } from '@/types/vspTypes'
+import { getCodeSystemCatalogue } from '@/helpers/server/terminologyCapabilities'
 
 /**
  * GET: Fetch available versions for CodeSystems or ValueSets from terminology server
@@ -31,13 +32,15 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, se
   try {
     // If URL is provided, get versions for that specific CodeSystem or ValueSet
     if (req.query.url) {
+      if (resourceType === 'CodeSystem') {
+        const canonical = req.query.url as string
+        const versions = (await getCodeSystemCatalogue(vsacFhirClient)).versionsByUri[canonical] || []
+        return res.status(200).json(versions.map((version) => ({ version, id: `${canonical}-${version}` })))
+      }
+
       const results = await vsacFhirClient?.search({
-        resourceType: resourceType as 'CodeSystem' | 'ValueSet',
-        searchParams: {
-          // For CodeSystem: search by system parameter
-          // For ValueSet: search by url parameter
-          ...(resourceType === 'CodeSystem' ? { system: req.query.url } : { url: req.query.url })
-        }
+        resourceType: 'ValueSet',
+        searchParams: { url: req.query.url }
       })
 
       const versions = results?.entry?.map((i: fhir4.BundleEntry) => ({
@@ -53,27 +56,7 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, se
 
     // Get all available CodeSystems or ValueSets from capability statement
     if (resourceType === 'CodeSystem') {
-      const terminologyCapabilityStatement = await vsacFhirClient?.capabilityStatement()
-      const availableCodeSystems = terminologyCapabilityStatement?.extension
-        ?.map((ext: fhir4.Extension) => {
-          let uri, name, latestVersion
-          ext?.extension?.forEach((e: fhir4.Extension) => {
-            switch (e.url) {
-              case 'system':
-                uri = e.valueUri
-                break
-              case 'version':
-                latestVersion = e.valueString
-                break
-              case 'name':
-                name = e.valueString
-                break
-            }
-          })
-
-          return { uri, name, latestVersion }
-        })
-        .filter((x: any) => x.uri && x.name)
+      const availableCodeSystems = (await getCodeSystemCatalogue(vsacFhirClient)).codeSystems
 
       return res.status(200).json(availableCodeSystems)
     } else if (resourceType === 'ValueSet') {

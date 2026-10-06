@@ -2,6 +2,7 @@ import { createMocks } from 'node-mocks-http'
 import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/pages/api/programs/[id]/manifest'
+import { clearCatalogueCache } from '@/helpers/server/terminologyCapabilities'
 
 // Mock Auth for Setup
 jest.mock('undici', () => jest.fn())
@@ -17,7 +18,10 @@ jest.mock('next-auth/next', () => ({
 jest.mock('fhir-kit-client')
 
 describe('/api/programs/[id]/manifest', () => {
-  test('GET /api/programs/[id]/manifest?url=, retrieves versions for manifest', async () => {
+  // The catalogue is cached per terminology server base URL.
+  beforeEach(() => clearCatalogueCache())
+
+  test('GET /api/programs/[id]/manifest?url=, lists every version the terminology server holds', async () => {
     const { req, res } = createMocks({
       method: 'GET',
       query: {
@@ -25,31 +29,37 @@ describe('/api/programs/[id]/manifest', () => {
       }
     })
     const vsacTerminologyClient = {
-      search: jest.fn().mockResolvedValueOnce({
-        resourceType: 'Bundle',
-        type: 'searchset',
-        entry: [
-          {
-            resource: {
-              resourceType: 'CodeSystem',
-              version: '1.0.0',
-              id: '123-1.0.0',
-              date: '2021-10-01'
-            }
-          }
-        ]
-      })
+      baseUrl: 'https://vsac.example.com/fhir',
+      search: jest.fn(),
+      request: jest.fn((path: string) =>
+        Promise.resolve(
+          path.startsWith('metadata')
+            ? {
+                resourceType: 'TerminologyCapabilities',
+                codeSystem: [
+                  {
+                    uri: 'http://example.com',
+                    version: [{ code: '2.0.0', isDefault: true }, { code: '1.0.0' }]
+                  },
+                  { uri: 'http://other.example.com', version: [{ code: '9.9.9' }] }
+                ]
+              }
+            : { resourceType: 'Bundle', entry: [] }
+        )
+      )
     }
 
     TerminologyFhirClient.getClient = jest.fn().mockImplementation(() => vsacTerminologyClient)
     await handler(req, res)
-    expect(vsacTerminologyClient.search).toHaveBeenCalledTimes(1)
-    expect(vsacTerminologyClient.search).toHaveBeenCalledWith({
-      resourceType: 'CodeSystem',
-      searchParams: {
-        system: 'http://example.com'
-      }
-    })
+    // A CodeSystem search only returns the current version, so the full list
+    // comes from the catalogue.
+    expect(vsacTerminologyClient.search).toHaveBeenCalledTimes(0)
+    expect(vsacTerminologyClient.request).toHaveBeenCalledWith('metadata?mode=terminology')
+
+    expect(res._getJSONData()).toEqual([
+      { version: '2.0.0', id: 'http://example.com-2.0.0' },
+      { version: '1.0.0', id: 'http://example.com-1.0.0' }
+    ])
     expect(res._getStatusCode()).toBe(200)
   })
 
@@ -59,34 +69,37 @@ describe('/api/programs/[id]/manifest', () => {
     })
 
     const fhirCdrClient = {
+      baseUrl: 'https://vsac.example.com/fhir',
       search: jest.fn(),
-      capabilityStatement: jest.fn().mockResolvedValueOnce({
-        extension: [
-          {
-            extension: [
-              {
-                url: 'system',
-                valueUri: 'http://example.com'
-              },
-              {
-                url: 'version',
-                valueString: '1.0.0'
-              },
-              {
-                url: 'name',
-                valueString: 'Test'
+      capabilityStatement: jest.fn(),
+      request: jest.fn((path: string) =>
+        Promise.resolve(
+          path.startsWith('metadata')
+            ? {
+                resourceType: 'TerminologyCapabilities',
+                codeSystem: [
+                  {
+                    uri: 'http://example.com',
+                    version: [
+                      { code: '0.9.0', isDefault: false },
+                      { code: '1.0.0', isDefault: true }
+                    ]
+                  }
+                ]
               }
-            ]
-          }
-        ]
-      })
+            : {
+                resourceType: 'Bundle',
+                entry: [{ resource: { resourceType: 'CodeSystem', url: 'http://example.com', name: 'Test' } }]
+              }
+        )
+      )
     }
 
     TerminologyFhirClient.getClient = jest.fn().mockImplementation(() => fhirCdrClient)
 
     await handler(req, res)
     expect(fhirCdrClient.search).toHaveBeenCalledTimes(0)
-    expect(fhirCdrClient.capabilityStatement).toHaveBeenCalledTimes(1)
+    expect(fhirCdrClient.request).toHaveBeenCalledWith('metadata?mode=terminology')
 
     expect(res._getJSONData()).toEqual([{ uri: 'http://example.com', name: 'Test', latestVersion: '1.0.0' }])
     expect(res._getStatusCode()).toBe(200)

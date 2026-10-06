@@ -10,7 +10,7 @@ import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper
 import { Agent, fetch as f } from 'undici'
 import { is } from '@/helpers/is'
 import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
-import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { getCodeSystemCatalogue } from '@/helpers/server/terminologyCapabilities'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   const userId = session.user.id
@@ -27,48 +27,15 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, se
 
   try {
     const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
-    if (req.query.url) {
-      const results = await vsacFhirClient?.search({
-        resourceType: 'CodeSystem',
-        searchParams: {
-          system: req.query.url
-        }
-      })
+    const catalogue = await getCodeSystemCatalogue(vsacFhirClient)
+    const canonical = req.query.url as string | undefined
 
-      const versions = results?.entry?.map((i: fhir4.BundleEntry) => ({
-        //@ts-ignore
-        version: i?.resource?.version,
-        //@ts-ignore
-        id: i?.resource?.id + '-' + i?.resource?.version,
-        //@ts-ignore
-        date: i?.resource?.date
-      }))
-      return res.status(200).json(versions)
+    if (canonical) {
+      const versions = catalogue.versionsByUri[canonical] || []
+      return res.status(200).json(versions.map((version) => ({ version, id: `${canonical}-${version}` })))
     }
 
-    const terminologyCapabilityStatement = await vsacFhirClient?.capabilityStatement()
-    const availableCodeSystems = terminologyCapabilityStatement?.extension
-      ?.map((ext: fhir4.Extension) => {
-        let uri, name, latestVersion
-        ext?.extension?.forEach((e: fhir4.Extension) => {
-          switch (e.url) {
-            case 'system':
-              uri = e.valueUri
-              break
-            case 'version':
-              latestVersion = e.valueString
-              break
-            case 'name':
-              name = e.valueString
-              break
-          }
-        })
-
-        return { uri, name, latestVersion }
-      })
-      .filter((x: any) => x.uri && x.name)
-
-    return res.status(200).json(availableCodeSystems)
+    return res.status(200).json(catalogue.codeSystems)
   } catch (e) {
     Logger.getLogger().error('An error occured likely from the VSAC side')
     logSimpleError(e)
