@@ -508,7 +508,7 @@ describe('generateGrouperValuesetSheet', () => {
       }
     })
 
-    // Code List columns: Member OID, Code, Descriptor, Code System, Version, Status, RemapInfo, Change
+    // Code List columns: Member OID, Code, Descriptor, Code System, Version, Status, Change
     const STATUS = 5
 
     const statusFor = async (codes: any[]) => {
@@ -548,7 +548,7 @@ describe('generateGrouperValuesetSheet', () => {
 
     // The Change column reads in plain English, not operation types.
     describe('Change column', () => {
-      const CHANGE = 7
+      const CHANGE = 6
 
       const changeFor = async (operationType: string) => {
         ;(fetchByCanonical as jest.Mock).mockResolvedValue({ entry: [{ resource: grouperVs }] })
