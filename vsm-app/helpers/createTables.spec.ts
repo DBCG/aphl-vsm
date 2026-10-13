@@ -445,7 +445,7 @@ describe('createTableData', () => {
     // @ts-ignore
     const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
-    expect(row!.change).toBe('insert Conditions')
+    expect(row!.change).toBe('Added Conditions')
     expect(row!.conditionUpdates).toStrictEqual([
       expect.objectContaining({ conditionChange: 'Add condition', conditionName: 'COVID-19' })
     ])
@@ -513,9 +513,38 @@ describe('createTableData', () => {
     // @ts-ignore
     const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
-    expect(row!.change).toBe('insert Conditions')
+    expect(row!.change).toBe('Added Conditions')
   })
-  
+
+  it('should report a removed condition as the rows change', () => {
+    const condition = {
+      codeValue: '840539006',
+      display: 'COVID-19',
+      system: 'http://snomed.info/sct',
+      operation: { type: 'delete', path: 'condition' }
+    }
+    const leaf = {
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277',
+      title: 'Haemophilus influenzae',
+      status: 'active',
+      name: 'HaemophilusInfluenzae',
+      memberOid: '2.16.840.1.113762.1.4.1146.277',
+      priority: { value: 'routine' },
+      conditions: [],
+      codeSystems: []
+    }
+    const withoutCondition = JSON.parse(JSON.stringify(changelog))
+    const grouperPage = withoutCondition.pages.find((p: any) => p?.newData?.resourceType === 'ValueSet')
+    grouperPage.oldData.leafValueSets = [{ ...leaf, conditions: [condition] }]
+    grouperPage.newData.leafValueSets = [leaf]
+
+    const result = createTableData(withoutCondition)
+    // @ts-ignore
+    const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
+
+    expect(row!.change).toBe('Removed Conditions')
+  })
+
   describe('condition updates', () => {
     const conditionUpdatesFor = (conditions: any[]) => {
       const leaf = {

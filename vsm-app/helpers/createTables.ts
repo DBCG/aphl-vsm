@@ -148,10 +148,16 @@ const generateGrouperMetadata = (grouperPage: GrouperVsPage, hasChanges: boolean
   return grouperMetadata()
 }
 
+// How a leaf's change reads when all of its condition changes are of one kind
+const MAIN_CONDITION_CHANGE_TEXT: Record<string, string> = {
+  insert: 'Added Conditions',
+  delete: 'Removed Conditions',
+}
+
 const generateMainChangeText = (grouperListItem: any) => {
-  const allConditionChangeTypes = uniq(grouperListItem?.conditions
+  const allConditionChangeTypes = (uniq(grouperListItem?.conditions
     ?.filter((c: { operation: any }) => c?.operation)
-    ?.map((i: { operation: { type: any } }) => i?.operation?.type)) || [] as string[]
+    ?.map((i: { operation: { type: any } }) => i?.operation?.type)) || []) as string[]
 
   // A repin is deliberately not reported. The branches below still run for such
   // a leaf, so a condition or priority change it carries is kept.
@@ -159,9 +165,9 @@ const generateMainChangeText = (grouperListItem: any) => {
     return 'Added VS'
   } else if (grouperListItem?.operation?.type === 'delete') {
     return 'Removed VS'
-  } else if (allConditionChangeTypes.length === 1) {
-    return `${allConditionChangeTypes[0]} Conditions`
-  } else if (allConditionChangeTypes.length > 1) {
+  } else if (allConditionChangeTypes.length === 1 && MAIN_CONDITION_CHANGE_TEXT[allConditionChangeTypes[0]]) {
+    return MAIN_CONDITION_CHANGE_TEXT[allConditionChangeTypes[0]]
+  } else if (allConditionChangeTypes.length > 0) {
     // e.g. one condition added and another removed. Without this the row reported no change at all
     // and the table's own filter hid it.
     return 'Updated Condition Code(s)'

@@ -180,7 +180,6 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
         sortable: true,
         wrap: true,
         maxWidth: '150px',
-        style: { textTransform: 'capitalize' },
         cell: (row: Row) => {
           return (
             <TdContainer>
