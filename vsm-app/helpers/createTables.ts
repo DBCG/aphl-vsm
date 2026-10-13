@@ -164,7 +164,7 @@ const generateMainChangeText = (grouperListItem: any) => {
   } else if (allConditionChangeTypes.length > 1) {
     // e.g. one condition added and another removed. Without this the row reported no change at all
     // and the table's own filter hid it.
-    return 'Updated Conditions'
+    return 'Updated Condition Code(s)'
   } else if (grouperListItem?.priority?.operation) {
     return 'Updated Priority'
   } else {

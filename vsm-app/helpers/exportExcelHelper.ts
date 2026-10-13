@@ -547,11 +547,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           value?.forEach((rowValue) => {
             const { display: descriptor, memberOid, version, codeValue: code, codeSystemName, inactive } = rowValue
             const status = inactive == null ? '' : inactive ? 'Inactive' : 'Active'
-            // The manual change log leaves Remap Info empty on every row
-            // TODO:: is there a real value we can assign here?
-            const remapInfo = ''
             const change = changeText(key, CODE_CHANGE_TEXT)
-            codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, remapInfo, change])
+            codeRows.push([memberOid, code, descriptor, codeSystemName, version, status, change])
           })
         })
       }
@@ -576,7 +573,6 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
             { name: 'Code System', filterButton: true },
             { name: 'Version', filterButton: true },
             { name: 'Status', filterButton: true },
-            { name: 'RemapInfo', filterButton: true },
             { name: 'Change', filterButton: true }
           ],
           rows: codeRows
