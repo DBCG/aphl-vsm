@@ -481,7 +481,7 @@ describe('createTableData', () => {
     // @ts-ignore
     const row = result.grouperPages[0].valueSetsTable.find((r: any) => r.oid === leaf.memberOid)
 
-    expect(row!.change).toBe('Updated Conditions')
+    expect(row!.change).toBe('Updated Condition Code(s)')
     expect(row!.conditionUpdates).toStrictEqual([
       expect.objectContaining({ conditionChange: 'Add condition', conditionName: 'Death from RSV' }),
       expect.objectContaining({ conditionChange: 'Remove condition', conditionName: 'RSV infection' })
