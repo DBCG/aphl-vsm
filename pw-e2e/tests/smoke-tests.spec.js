@@ -21,17 +21,20 @@ async function login(page) {
   await page.getByRole("button", { name: "Sign In" }).click();
 }
 
-// test("Enters Setup Credentials for VSAC", async ({ page }) => {
-//   await login(page);
-//   await page.getByRole("button", { name: "+ Add Credentials" }).click();
-//   await page.getByRole("textbox", { name: "Username" }).click();
-//   await page.getByRole("textbox", { name: "Username" }).fill("admin");
-//   await page.getByRole("textbox", { name: "Password" }).click();
-//   await page.getByRole("textbox", { name: "Password" }).fill("d94c5044-3010-4adb-8df3-27b0bd4721f7");
-//   await page.getByRole("button", { name: "Update Credentials" }).click();
-//   await page.getByRole("link", { name: "Home" }).click();
-//   await expect(page.getByRole("button", { name: "Select 2 Programs to Compare" })).toHaveCount(1);
-// });
+async function setVSACCredentials(page) {
+  await page.getByRole('button', { name: 'more' }).click();
+  await page.getByRole('menuitem', { name: 'Settings' }).click();
+  await page.waitForTimeout(3000)
+  if (await page.getByRole('button', { name: '+ Add Credentials' }).isVisible()) {
+    await page.getByRole('button', { name: '+ Add Credentials' }).click();
+    await page.getByRole('textbox', { name: 'Username' }).click();
+    await page.getByRole('textbox', { name: 'Username' }).fill(process.env.VSAC_USERNAME);
+    await page.getByRole('textbox', { name: 'Username' }).press('Tab');
+    await page.getByRole('textbox', { name: 'Password' }).fill(process.env.VSAC_API_KEY);
+    await page.getByRole('button', { name: 'Update Credentials' }).click();
+  }
+  await page.getByRole('link', { name: 'Home' }).click();
+}
 
 test.describe.serial("Smoke Tests", () => {
   test("Creates a draft program", async ({ page }) => {
@@ -87,6 +90,7 @@ test.describe.serial("Smoke Tests", () => {
 
   test("Adds a manifest to program", async ({ page }) => {
     await login(page);
+    await setVSACCredentials(page);
     await page.getByTestId("text-link").first().click();
     await page.getByRole("button", { name: "Edit Manifest" }).click();
     await page.locator("#code-system-selector svg").click();
@@ -134,7 +138,6 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("textbox", { name: "Search Text" }).fill("diabetes");
     await page.getByRole("button", { name: "search" }).click();
     await page.getByRole("checkbox", { name: "select-all-rows" }).check();
-    await page.getByText("* This search will only").click();
     await page
       .locator("div")
       .filter({ hasText: /^ConditionsSelect\.\.\.$/ })
@@ -187,12 +190,12 @@ test.describe.serial("Smoke Tests", () => {
     await expect(page.getByText("test-title")).toHaveCount(1);
 
     // Now remove newly created grouper
-    //await page.getByRole("row", { name: "ExcellentTitleForGrouper test" }).getByLabel("delete").click();
-    //await page.getByRole("button", { name: "YES" }).click();
-    //await page.waitForTimeout(1000); // Wait for data load
+    await page.getByRole("row", { name: "ExcellentTitleForGrouper test" }).getByLabel("delete").click();
+    await page.getByRole("button", { name: "YES" }).click();
+    await page.waitForTimeout(1000); // Wait for data load
 
     // Check that the grouper had been removed
-    //await expect(page.getByText("test-title")).toHaveCount(0);
+    await expect(page.getByText("test-title")).toHaveCount(0);
   });
 
   test("Adds a new valueset to multiple program groupers then removes it", async ({ page }) => {
@@ -269,64 +272,64 @@ test.describe.serial("Smoke Tests", () => {
     await expect(page.getByText("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.2217")).toHaveCount(1);
   });
 
-  // test("Adds a leaf valueset to grouper twice without duplicating", async ({ page }) => {
-  //   await login(page);
-  //   await page.getByTestId("text-link").first().click();
+   test("Adds a leaf valueset to grouper twice without duplicating", async ({ page }) => {
+     await login(page);
+     await page.getByTestId("text-link").first().click();
 
-  //   // vsac search for valuesets
-  //   await page.getByRole("button", { name: "View ValueSets" }).click();
-  //   await page.getByRole("button", { name: "Add Valuesets" }).click();
-  //   await page.getByRole("textbox", { name: "Search Text" }).click();
-  //   await page.getByRole("textbox", { name: "Search Text" }).fill("brain");
-  //   await page.getByRole("button", { name: "search", exact: true }).click();
-  //   await page.getByRole("checkbox", { name: "select-row-2.16.840.1.113762.1.4.1146.2216-" }).check();
-  //   await page
-  //     .locator("div")
-  //     .filter({ hasText: /^ConditionsSelect\.\.\.$/ })
-  //     .locator("svg")
-  //     .click();
-  //   await page.getByText("Acute Flaccid Myelitis (AFM)").click();
+     // vsac search for valuesets
+     await page.getByRole("button", { name: "View ValueSets" }).click();
+     await page.getByRole("button", { name: "Add Valuesets" }).click();
+     await page.getByRole("textbox", { name: "Search Text" }).click();
+     await page.getByRole("textbox", { name: "Search Text" }).fill("brain");
+     await page.getByRole("button", { name: "search", exact: true }).click();
+     await page.getByRole("checkbox", { name: "select-row-2.16.840.1.113762.1.4.1146.2216-" }).check();
+     await page
+       .locator("div")
+       .filter({ hasText: /^ConditionsSelect\.\.\.$/ })
+       .locator("svg")
+       .click();
+     await page.getByText("Acute Flaccid Myelitis (AFM)").click();
 
-  //   await page.locator("#react-select-search-page-groups-input").click();
-  //   await page.getByText("Diagnosis_Problem Triggers for Public Health Reporting", { exact: true }).click();
-  //   await page.locator("#react-select-search-page-groups-input").click();
-  //   await page.getByText("Organism_Substance Release Triggers for Public Health Reporting", { exact: true }).click();
-  //   await page.getByRole("button", { name: "Add Selected To Program" }).click();
-  //   await page.getByRole("button", { name: "close" }).click(); // close notification
-  //   await page.waitForTimeout(1000); // Wait for data load
+     await page.locator("#react-select-search-page-groups-input").click();
+     await page.getByText("Diagnosis_Problem Triggers for Public Health Reporting", { exact: true }).click();
+     await page.locator("#react-select-search-page-groups-input").click();
+     await page.getByText("Organism_Substance Release Triggers for Public Health Reporting", { exact: true }).click();
+     await page.getByRole("button", { name: "Add Selected To Program" }).click();
+     await page.getByRole("button", { name: "close" }).click(); // close notification
+     await page.waitForTimeout(1000);  // Wait for data load
 
-  //   // Add same leaf valueset again and ensure only one exists on grouper
+     // Add same leaf valueset again and ensure only one exists on grouper
 
-  //   // vsac search for valuesets
-  //   await page.getByRole("button", { name: "Add Valuesets" }).click();
-  //   await page.getByRole("textbox", { name: "Search Text" }).click();
-  //   await page.getByRole("textbox", { name: "Search Text" }).fill("brain");
-  //   await page.getByRole("button", { name: "search", exact: true }).click();
-  //   await page.getByRole("checkbox", { name: "select-row-2.16.840.1.113762.1.4.1146.2216-" }).check();
-  //   await page
-  //     .locator("div")
-  //     .filter({ hasText: /^ConditionsSelect\.\.\.$/ })
-  //     .locator("svg")
-  //     .click();
-  //   await page.getByText("Acute Flaccid Myelitis (AFM)").click();
+     // vsac search for valuesets
+     await page.getByRole("button", { name: "Add Valuesets" }).click();
+     await page.getByRole("textbox", { name: "Search Text" }).click();
+     await page.getByRole("textbox", { name: "Search Text" }).fill("brain");
+     await page.getByRole("button", { name: "search", exact: true }).click();
+     await page.getByRole("checkbox", { name: "select-row-2.16.840.1.113762.1.4.1146.2216-" }).check();
+     await page
+       .locator("div")
+       .filter({ hasText: /^ConditionsSelect\.\.\.$/ })
+       .locator("svg")
+       .click();
+     await page.getByText("Acute Flaccid Myelitis (AFM)").click();
 
-  //   await page.locator("#react-select-search-page-groups-input").click();
-  //   await page.getByText("Diagnosis_Problem Triggers for Public Health Reporting", { exact: true }).click();
+     await page.locator("#react-select-search-page-groups-input").click();
+     await page.getByText("Diagnosis_Problem Triggers for Public Health Reporting", { exact: true }).click();
 
-  //   await page.getByRole("button", { name: "Add Selected To Program" }).click();
-  //   await page.getByRole("button", { name: "close" }).click(); // close notification
-  //   await page.waitForTimeout(1000); // Wait for data load
+     await page.getByRole("button", { name: "Add Selected To Program" }).click();
+     await page.getByRole("button", { name: "close" }).click(); // close notification
+     await page.waitForTimeout(1000);  //Wait for data load
 
-  //   await page.locator("#breadcrumb-programs", { exact: true }).click();
-  //   await page.waitForTimeout(1000); // Wait for data load
-  //   await page.getByTestId("text-link").first().click();
+     await page.locator("#breadcrumb-programs", { exact: true }).click();
+     await page.waitForTimeout(1000); // Wait for data load
+     await page.getByTestId("text-link").first().click();
 
-  //   // Check First Grouper to see if leaf exists
-  //   await page.getByRole("link", { name: "Diagnosis_ProblemTriggersforPublicHealthReporting" }).click();
-  //   await page.getByRole("textbox", { name: "Filter by canonical" }).dblclick();
-  //   await page.getByRole("textbox", { name: "Filter by canonical" }).fill("2.16.840.1.113762.1.4.1146.2216");
-  //   await expect(page.getByText("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.2216")).toHaveCount(1);
-  // });
+     // Check First Grouper to see if leaf exists
+     await page.getByRole("link", { name: "Diagnosis_ProblemTriggersforPublicHealthReporting" }).click();
+     await page.getByRole("textbox", { name: "Filter by canonical" }).dblclick();
+     await page.getByRole("textbox", { name: "Filter by canonical" }).fill("2.16.840.1.113762.1.4.1146.2216");
+     await expect(page.getByText("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.2216")).toHaveCount(1);
+   });
 
   test("Sets Priority on a valueset", async ({ page }) => {
     await login(page);
@@ -355,7 +358,7 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByTestId("text-link").first().click();
     await page.getByRole("button", { name: "View ValueSets" }).click();
 
-    await page.locator('[id="condition-selector-2.16.840.1.113762.1.4.1146.1260"] input').click({ force: true });
+    await page.locator('[id="condition-selector-2.16.840.1.113762.1.4.1146.2217"] input').click({ force: true });
     await page.getByText("Animal Bite Injury").click();
     await page.waitForTimeout(10000);
     await expect(page.getByText("Animal Bite Injury")).toHaveCount(1);
@@ -365,46 +368,44 @@ test.describe.serial("Smoke Tests", () => {
     await expect(page.getByText("Animal Bite Injury")).toHaveCount(0);
   });
 
-  // TODO: wait until condition issue is fixed
-  // test("Creates approval for draft library and release", async ({ page }) => {
-  //   await login(page);
-  //   const packageId = await page.getByTestId("text-link").first().textContent();
-  //   await expect(page.getByText("DRAFT", { exact: true })).toHaveCount(1);
+   test("Creates approval for draft library and release", async ({ page }) => {
+     await login(page);
+     const packageId = await page.getByTestId("text-link").first().textContent();
+     await expect(page.getByText("DRAFT", { exact: true })).toHaveCount(1);
 
-  //   await page.getByTestId("text-link").first().click();
-  //   await page.getByRole("button", { name: "Approve Now!" }).click();
-  //   await page.getByRole("textbox", { name: "Text" }).click();
-  //   await page.getByRole("textbox", { name: "Text" }).fill("approval text");
-  //   await page.getByRole("textbox", { name: "Reference" }).click();
-  //   await page.getByRole("textbox", { name: "Reference" }).fill("http://www.example.com");
-  //   await page.getByRole("button", { name: "Submit" }).click();
+     await page.getByTestId("text-link").first().click();
+     await page.getByRole("button", { name: "Approve Now!" }).click();
+     await page.getByRole("textbox", { name: "Text" }).click();
+     await page.getByRole("textbox", { name: "Text" }).fill("approval text");
+     await page.getByRole("textbox", { name: "Reference" }).click();
+     await page.getByRole("textbox", { name: "Reference" }).fill("http:www.example.com");
+     await page.getByRole("button", { name: "Submit" }).click();
 
-  //   await page.waitForTimeout(5000); // Wait for data load
-  //   await page.reload({ waitUntil: "domcontentloaded" });
+     await page.waitForTimeout(5000); // Wait for data load
+     await page.reload({ waitUntil: "domcontentloaded" });
 
-  //   await expect(page.getByText("johndoe@test.com")).toHaveCount(1);
-  //   await expect(page.getByText("approval text")).toHaveCount(1);
-  //   await expect(page.getByText("http://www.example.com")).toHaveCount(1);
+     await expect(page.getByText("johndoe@test.com")).toHaveCount(1);
+     await expect(page.getByText("approval text")).toHaveCount(1);
+     await expect(page.getByText("http:www.example.com")).toHaveCount(1);
 
-  //   await page.locator("#breadcrumb-programs", { exact: true }).click();
-  //   await page.waitForTimeout(5000); // Wait for data load
+     await page.locator("#breadcrumb-programs", { exact: true }).click();
+     await page.waitForTimeout(5000); // Wait for data load
 
-  //   await page.getByTestId(`expander-button-${packageId}`).click();
-  //   await page.getByRole("button", { name: "Release" }).click();
-  //   await page.getByRole("textbox", { name: "Description of Release" }).click();
-  //   await page.getByRole("textbox", { name: "Description of Release" }).fill("release description");
-  //   await page.getByRole("textbox", { name: "Label for Release" }).click();
-  //   await page.getByRole("textbox", { name: "Label for Release" }).fill("release label");
-  //   await page.getByRole("textbox", { name: "Effective Start Date *" }).click();
-  //   await page.getByRole("button", { name: "Choose date" }).click();
-  //   await page.waitForTimeout(5000); // Wait for data load
-  //   await page.getByRole("button", { name: "Today", exact: true }).click();
-  //   await page.getByRole("button", { name: "Next" }).first().click();
-  //   await page.getByRole("button", { name: "RELEASE" }).click();
-  //   await page.waitForLoadState("networkidle");
-  //   await page.waitForTimeout(10000);
-  //   await expect(page.getByText("DRAFT", { exact: true })).toHaveCount(0);
-  // });
+     await page.getByTestId(`expander-button-${packageId}`).click();
+     await page.getByRole("button", { name: "Release" }).click();
+     await page.getByRole("textbox", { name: "Description of Release" }).click();
+     await page.getByRole("textbox", { name: "Description of Release" }).fill("release description");
+     await page.getByRole("textbox", { name: "Label for Release" }).click();
+     await page.getByRole("textbox", { name: "Label for Release" }).fill("release label");
+     await page.getByRole('button', { name: 'Choose date, selected date is' }).click();
+     await page.waitForTimeout(5000); // Wait for data load
+     await page.getByRole("button", { name: "Today", exact: true }).click();
+     await page.getByRole("button", { name: "Next" }).first().click();
+     await page.getByRole("button", { name: "RELEASE" }).click();
+     await page.waitForLoadState("networkidle");
+     await page.waitForTimeout(10000);
+     await expect(page.getByText("DRAFT", { exact: true })).toHaveCount(0);
+   });
 
   test("Retires an active program", async ({ page }) => {
     await login(page);
@@ -426,18 +427,18 @@ test.describe.serial("Smoke Tests", () => {
     // Create new Provisional CodeSystem
     await page.getByRole("button", { name: "+ Create New" }).first().click();
     await page.locator("#code-system-url-selector").click();
-    await page.getByText("CPT").click();
+    await page.getByText("LOINC").click();
     await page.getByRole("textbox", { name: "Code *", exact: true }).click();
-    await page.getByRole("textbox", { name: "Code *", exact: true }).fill("CPTCode");
+    await page.getByRole("textbox", { name: "Code *", exact: true }).fill("LOINCCode");
     await page.getByRole("textbox", { name: "Display *" }).click();
-    await page.getByRole("textbox", { name: "Display *" }).fill("CPTDisplay");
+    await page.getByRole("textbox", { name: "Display *" }).fill("LOINCDisplay");
     await page.getByRole("textbox", { name: "Definition (more detail about" }).click();
-    await page.getByRole("textbox", { name: "Definition (more detail about" }).fill("CptDefinition");
+    await page.getByRole("textbox", { name: "Definition (more detail about" }).fill("LoincDefinition");
     await page.getByRole("button", { name: "Add to List" }).click();
     await page.getByRole("button", { name: "ADD TO SYSTEM" }).click();
     await page.waitForTimeout(10000);
     await page.getByRole("link", { name: "provisional" }).click();
-    await expect(page.getByText("CPT_provisional")).toHaveCount(1);
+    await expect(page.getByText("LOINC_provisional")).toHaveCount(1);
 
     // Create Provisional ValueSet with the newly created CodeSystem
     await page.getByRole("button", { name: "+ Create New" }).nth(1).click();
@@ -449,8 +450,8 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("textbox", { name: "Steward" }).click();
     await page.getByRole("textbox", { name: "Steward" }).fill("provsSteward");
     await page.locator("#code-system-url-selector").click();
-    await page.getByText("CPT", { exact: true }).click();
-    await page.getByRole("checkbox", { name: "select-row-CPTCode" }).check();
+    await page.getByText("LOINC", { exact: true }).click();
+    await page.getByRole("checkbox", { name: "select-row-LOINCCode" }).check();
     await page.getByRole("button", { name: "Add to Staging" }).click();
     await page.getByRole("button", { name: "Create Provisional Value Set" }).click();
     await page.waitForTimeout(10000);
@@ -459,27 +460,50 @@ test.describe.serial("Smoke Tests", () => {
     await expect(page.getByText("provsTitle")).toHaveCount(1);
   });
 
-  test("Update provisional code system and value set", async ({ page }) => {
+  //TODO::restore when we've decided correct path forward for provisional system.
+  /*test("Update provisional code system and value set", async ({ page }) => {
     await login(page);
     await page.waitForTimeout(5000);
     await page.getByRole("tab", { name: "Provisional Resources", exact: true }).click({ force: true });
 
-    await page.getByRole("row", { name: "CPT_provisional http://ersd." }).getByRole("button").click();
-    await page.locator("#cell-4-CPTCode").getByRole("button").click();
+    await page.getByRole("row", { name: "LOINC_provisional http://ersd." }).getByRole("button").click();
+    await page.locator("#cell-4-LOINCCode").getByRole("button").click();
     await page.getByLabel("Code", { exact: true }).click();
-    await page.getByLabel("Code", { exact: true }).fill("CPTCodeEdit");
+    await page.getByLabel("Code", { exact: true }).fill("LOINCCodeEdit");
     await page.getByRole("textbox", { name: "Update Display" }).click();
-    await page.getByRole("textbox", { name: "Update Display" }).fill("CPTDisplayEdit");
+    await page.getByRole("textbox", { name: "Update Display" }).fill("LOINCDisplayEdit");
     await page.getByRole("textbox", { name: "Update Definition" }).click();
-    await page.getByRole("textbox", { name: "Update Definition" }).fill("CptDefinitionEdit");
+    await page.getByRole("textbox", { name: "Update Definition" }).fill("LoincDefinitionEdit");
 
     await page.getByRole("button", { name: "Save changes" }).click();
-    await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForTimeout(10000);
     await page.goto(appUrl + "?resourceType=provisional");
     await page.getByRole("row", { name: "provsTitle provsAuthor" }).getByRole("button").click();
     await page.locator('[data-testid*="expander-button-"]').first().click();
-    await expect(page.getByText("CPTCodeEdit")).toBeVisible();
-    await expect(page.getByText("CPTDisplayEdit")).toBeVisible();
+    await expect(page.getByText("LOINCCodeEdit")).toBeVisible();
+    await expect(page.getByText("LOINCDisplayEdit")).toBeVisible();
+  });*/
+
+  test('Deletes a retired program', async ({ page }) => {
+    await login(page);
+    await page.getByRole('checkbox', { name: 'Show retired programs' }).check();
+    await page.getByTestId('expander-button-SpecificationLibrary').click();
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'YES, delete' }).click();
+    await expect(page.getByText('RETIRED', { exact: true})).toHaveCount(0);
+  });
+
+  test('Withdraw a draft', async ({ page }) => {
+    await login(page);
+    const packageId = await page.getByTestId("text-link").first().textContent();
+    await page.getByTestId(`expander-button-${packageId}`).click();
+    await page.getByRole("button", { name: "Clone" }).click();
+    await page.getByRole("button", { name: "YES, clone" }).click();
+    await page.waitForTimeout(5000);
+    const draftProgramId = await page.getByTestId("text-link").first().textContent();
+    await page.getByTestId(`expander-button-${draftProgramId}`).click();
+    await page.getByRole('button', { name: 'Withdraw' }).click();
+    await page.getByRole('button', { name: 'YES, withdraw' }).click();
+    await expect(page.getByText("DRAFT", { exact: true })).toHaveCount(0);
   });
 });

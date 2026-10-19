@@ -8,7 +8,7 @@ async function setupData() {
   try {
     console.log('Setting up data...');
     // Run the shell script
-    const output = execSync(__dirname + '/../bin/load-data.sh');
+    const output = execSync(__dirname + '/../bin/load-data.sh', { input: 'y\ny\n'});
     console.log(output.toString())
     console.log(`Waiting for ${WAIT_TIME}ms for data to load...`);
     await sleep(WAIT_TIME);
