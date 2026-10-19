@@ -358,7 +358,7 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByTestId("text-link").first().click();
     await page.getByRole("button", { name: "View ValueSets" }).click();
 
-    await page.locator('[id="condition-selector-2.16.840.1.113762.1.4.1146.1260"] input').click({ force: true });
+    await page.locator('[id="condition-selector-2.16.840.1.113762.1.4.1146.2217"] input').click({ force: true });
     await page.getByText("Animal Bite Injury").click();
     await page.waitForTimeout(10000);
     await expect(page.getByText("Animal Bite Injury")).toHaveCount(1);
