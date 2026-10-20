@@ -2,7 +2,7 @@ tag: ""
 namespace: "vsm"
 hapi_fhir_jpa_server_starter:
   app_url: "a679ce859f9224c5ba05066fa825eaff-100086577.us-east-1.elb.amazonaws.com"
-  db_url: "jdbc:postgresql://sdh-dev-db-01.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler2"
+  db_url: "jdbc:postgresql://sdh-dev-db-01.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsm_hapi"
 vsm_app:
   app_url: "a7cda59b6554642618d1100dc6e3d8ce-5118621.us-east-1.elb.amazonaws.com"
   redis_host_url: "master.vsm-cache-dev.5hhpo0.use1.cache.amazonaws.com:6379"
