@@ -102,7 +102,7 @@ spec:
                   name: prod-db-passwords
                   key: vsm-db-password
             - name: spring.jpa.properties.hibernate.dialect
-              value: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+              value: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
             - name: hapi.fhir.cr.enabled
               value: "true"
             - name: hapi.fhir.cds.hooks.enabled
