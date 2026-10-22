@@ -36,6 +36,11 @@ services:
     - hapi.fhir.cr.enabled=true
     - hapi.fhir.cdshooks.enabled=true
     - hapi.fhir.cdshooks.clientIdHeaderName=client_id
+    - hapi.fhir.pre_expand_value_sets=false
+    - hapi.fhir.enable_task_pre_expand_value_sets=false
+    - hapi.fhir.maximum_expansion_size=10000
+    - hapi.fhir.pre_expand_value_sets_default_count=10000
+    - hapi.fhir.pre_expand_value_sets_max_count=10000
     - spring.main.allow-circular-references=true
     - spring.main.allow-bean-definition-overriding=true
     ports:

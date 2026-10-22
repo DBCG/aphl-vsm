@@ -109,6 +109,16 @@ spec:
               value: "true"
             - name: hapi.fhir.cdshooks.clientIdHeaderName
               value: "client_id"
+            - name: hapi.fhir.pre_expand_value_sets
+              value: "false"
+            - name: hapi.fhir.enable_task_pre_expand_value_sets
+              value: "false"
+            - name: hapi.fhir.pre_expand_value_sets_default_count
+              value: '10000'
+            - name: hapi.fhir.pre_expand_value_sets_max_count
+              value: '10000'
+            - name: hapi.fhir.maximum_expansion_size
+              value: '10000'
             - name: spring.main.allow-circular-references
               value: "true"
             - name: spring.main.allow-bean-definition-overriding
