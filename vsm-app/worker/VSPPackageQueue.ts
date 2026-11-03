@@ -208,9 +208,11 @@ VSPPackageQueue.process(async function (job: any, done) {
         keepAliveMaxTimeout: 60 * 60 * 1000
       }),
       headers: {
+        // Spread first so the requested Accept wins — customHeaders pins Accept to JSON,
+        // which otherwise overrides the XML request and breaks XML export.
+        ...FhirClient.getInstance().customHeaders,
         'Content-Type': 'application/fhir+json',
-        'Accept': acceptHeader,
-        ...FhirClient.getInstance().customHeaders
+        'Accept': acceptHeader
       }
     })
 

@@ -62,8 +62,10 @@ export async function getCachedPackageContent(bundleId: string, isJson: boolean)
     const response = await f(url, {
       method: 'GET',
       headers: {
-        'Accept': acceptHeader,
-        ...FhirClient.getInstance().customHeaders
+        // Spread first so the requested Accept wins (customHeaders pins Accept to JSON,
+        // which otherwise forces a JSON read of an XML-requested package).
+        ...FhirClient.getInstance().customHeaders,
+        'Accept': acceptHeader
       }
     })
 
@@ -152,9 +154,10 @@ export async function storeCachedPackage(packageContent: string, resourceId: str
       method: 'POST',
       body,
       headers: {
+        // Spread first so Content-Type (xml vs json) is honored when storing the cache copy.
+        ...FhirClient.getInstance().customHeaders,
         'Content-Type': contentType,
-        'Accept': 'application/fhir+json',
-        ...FhirClient.getInstance().customHeaders
+        'Accept': 'application/fhir+json'
       }
     })
 
