@@ -53,6 +53,15 @@ const deleteJob = async (req: NextApiRequest, res: NextApiResponse, session: VSM
   const cache = await Cache.getInstance()
   const userId = session.user.id
 
+  // Ownership check: Bull job ids are small per-queue integers and easy to guess, so we must
+  // confirm the job belongs to this user before removing it from any queue — otherwise one
+  // user could delete another user's in-flight job. A job is the user's only if it is in their
+  // job set. (The cache del/srem below are already user-scoped and no-op for other users.)
+  const isOwned = await cache.sismember(`user:${userId}:jobs`, jobId)
+  if (!isOwned) {
+    return res.status(404).json({ error: 'Job not found' })
+  }
+
   await cache.del(`user:${userId}:job:${jobId}`)
   await cache.srem(`user:${userId}:jobs`, jobId)
 

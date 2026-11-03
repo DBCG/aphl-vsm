@@ -50,12 +50,15 @@ const allQueues = [
 
 const mockCache = {
   del: jest.fn().mockResolvedValue(1),
-  srem: jest.fn().mockResolvedValue(1)
+  srem: jest.fn().mockResolvedValue(1),
+  sismember: jest.fn().mockResolvedValue(1)
 }
 
 beforeEach(() => {
   jest.clearAllMocks()
   ;(Cache.getInstance as jest.Mock).mockResolvedValue(mockCache)
+  // Default: caller owns the job
+  mockCache.sismember.mockResolvedValue(1)
   // Default: job is not present in any queue
   allQueues.forEach((q) => {
     ;(q.getJob as jest.Mock).mockResolvedValue(null)
@@ -139,5 +142,21 @@ describe('DELETE /api/jobs/[id]', () => {
     await handler(req, res)
 
     expect(res._getStatusCode()).toBe(200)
+  })
+
+  test('returns 404 and does not touch any queue when the job is not the caller\'s', async () => {
+    mockCache.sismember.mockResolvedValue(0)
+    const bullJob = { remove: jest.fn().mockResolvedValue(undefined) }
+    ;(VSPReleaseQueue.getJob as jest.Mock).mockResolvedValue(bullJob)
+
+    const { req, res } = createMocks({ method: 'DELETE', query: { id: 'someone-elses-job' } })
+
+    await handler(req, res)
+
+    expect(res._getStatusCode()).toBe(404)
+    // ownership check gates everything: no cache mutation, no Bull job removal
+    expect(mockCache.del).not.toHaveBeenCalled()
+    expect(mockCache.srem).not.toHaveBeenCalled()
+    expect(bullJob.remove).not.toHaveBeenCalled()
   })
 })
