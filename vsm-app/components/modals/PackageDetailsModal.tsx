@@ -186,8 +186,10 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       const spaceAndUnderscoreRx = /[\s_]/gi
       const fileTitle = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
       const fileExtension = fileType === 'csv' ? 'csv' : fileType === 'json' ? 'json' : 'xml'
-      const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
-      const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
+      // Use the artifact's version in the filename; fall back to a timestamp if it has none (e.g. an unversioned draft).
+      const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
+      const fileVersion = (program?.version || formattedTimestamp).replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
+      const filename = `${fileTitle}-bundle_${fileVersion}.${fileExtension}`
 
       const metadata: ExportJobMetadata = {
         programId: program.id!,
