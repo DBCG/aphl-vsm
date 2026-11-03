@@ -33,11 +33,9 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
   const programTitle = additionalData?.programTitle || 'program'
   const fileType = additionalData?.fileType ? additionalData.fileType.toUpperCase() : ''
   const errorMessage = jobDetails?.error
-  const version = additionalData?.version
-  // The artifact's semantic version (e.g. a VSP's 2024-05), distinct from the v1/v2 export toggle
+  // The artifact's semantic version (e.g. a VSP's 2024-05)
   const programVersion = additionalData?.programVersion
   const versionSuffix = programVersion ? ` ${programVersion}` : ''
-  const hasCustomPlanDefinition = additionalData?.hasCustomPlanDefinition
 
   let display
   switch (jobStatus) {
@@ -70,7 +68,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           </ListItemIcon>
           <Stack sx={{ maxWidth: '300px' }}>
             <Typography variant="body1" sx={{ fontSize: '14px' }}>
-              Export for {fileType} {version} {programTitle} failed
+              Export for {fileType} {programTitle}{versionSuffix} failed
             </Typography>
             <PopOverErrorMessage errorMessage={errorMessage || ''} />
           </Stack>
@@ -87,9 +85,8 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           <Link onClick={downloadExport}>
             <Stack>
               <Typography variant="body1">
-                {fileType} {version} {programTitle}{versionSuffix} is ready for download
+                {fileType} {programTitle}{versionSuffix} is ready for download
               </Typography>
-              {hasCustomPlanDefinition && <Typography variant="caption">Custom Plan Definition was used</Typography>}
             </Stack>
           </Link>
         </Box>

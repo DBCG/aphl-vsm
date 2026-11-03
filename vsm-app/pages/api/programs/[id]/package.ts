@@ -16,10 +16,7 @@ export interface ExpectedPackageBody extends NextApiRequest {
     data?: {
       parameters: fhir4.Parameters
       json: boolean
-      useV2: boolean
     }
-    planDefinition?: fhir4.PlanDefinition
-    targetVersion?: string
     metadata?: any
   }
 }
@@ -63,7 +60,7 @@ const validateConditionLeafVs = async (programId: string) => {
 }
 
 const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.Job>, session: VSMSession) => {
-  const { data, planDefinition, targetVersion, metadata } = req.body || {}
+  const { data, metadata } = req.body || {}
   if (!data?.parameters) {
     throw new Error('Missing parameters for Export')
   }
@@ -76,7 +73,7 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
     // @ts-ignore
     return res.status(400).json({ error: error?.message })
   }
-  const job = await PackageQueue.add({ data, planDefinition, targetVersion, programId: req.query.id as string, userId, convertToCSV: metadata?.fileType === 'csv'}, DEFAULT_JOB_CONFIG)
+  const job = await PackageQueue.add({ data, programId: req.query.id as string, userId, convertToCSV: metadata?.fileType === 'csv'}, DEFAULT_JOB_CONFIG)
 
   await Cache.setNewJob({
     userId,

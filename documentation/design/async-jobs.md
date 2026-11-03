@@ -19,8 +19,7 @@ Example Bull data
             "parameters": {
                 "resourceType": "Parameters"
             },
-            "json": true,
-            "useV2": true
+            "json": true
         },
         "programId": "38958",
         "userId": "bb661fbe-82f5-4794-9da9-8d42a25e661c"
@@ -54,7 +53,7 @@ Example Bull data
 Example of VSM job data
 ```json
 jobId: "40"
-metadata: "{\"programId\":\"38958\",\"version\":\"v2\",\"hasCustomPlanDefinition\":false,\"isJson\":true,\"filename\":\"Specification-Library-bundle_2025-01-24_15-26-51.json\",\"programTitle\":\"Specification Library\"}"
+metadata: "{\"programId\":\"38958\",\"fileType\":\"json\",\"filename\":\"Specification-Library-bundle_2025-01-24_15-26-51.json\",\"programTitle\":\"Specification Library\"}"
 status: "IN_PROGRESS"
 type: "EXPORT"
 ```
