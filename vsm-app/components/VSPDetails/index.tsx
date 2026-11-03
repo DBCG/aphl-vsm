@@ -162,6 +162,8 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
           metadata: {
             programId: id,
             programTitle: currentVSP?.title || id,
+            version: currentVSP?.version,
+            basePath: '/value-set-packages',
             latestFromTxServer: false
           },
           onSuccess: async () => {

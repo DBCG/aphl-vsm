@@ -1,11 +1,13 @@
-import { Badge, Box, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
+import { Badge, Box, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
 import { useState, useEffect } from 'react'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
 import DeleteIcon from '@mui/icons-material/Delete'
+import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 import { Jobs, JobData } from '@/types/jobTypes'
+import { compareJobsByCreation } from '@/helpers/notificationHelpers'
 
 // Notifications
 import CompareNotification from './CompareNotification'
@@ -46,8 +48,8 @@ const Notifications = () => {
     toast.success('All notifications cleared')
   }
 
-  //@ts-ignore
-  const sortedJobs = Object.entries(jobs).sort((a,b) => a?.[0] - b?.[0])
+  // Order by creation time (call order); see compareJobsByCreation for why id order is wrong.
+  const sortedJobs = Object.entries(jobs).sort(compareJobsByCreation)
 
   return (
     <Box>
@@ -65,38 +67,47 @@ const Notifications = () => {
       >
         {sortedJobs.map(([jobId, jobDetails]) => {
           jobDetails = convertMetadataToObj(jobDetails)
+          let notification: JSX.Element | null = null
           switch (jobDetails.type as string) {
             case JOB_TYPE.CHANGE_LOG:
-              return (
-                <Box key={jobId}>
-                  <CompareNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose}  />
-                  <hr />
-                </Box>
-              )
+              notification = <CompareNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
+              break
             case JOB_TYPE.EXPORT:
-              return (
-                <Box key={jobId}>
-                  <ExportNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
-                  <hr />
-                </Box>
-              )
+              notification = <ExportNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
+              break
             case JOB_TYPE.RELEASE:
-              return (
-                <Box key={jobId}>
-                  <ReleaseNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
-                  <hr />
-                </Box>
-              )
+              notification = <ReleaseNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
+              break
             case JOB_TYPE.FETCH_DEPENDENCIES:
-              return (
-                <Box key={jobId}>
-                  <DependencyNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
-                  <hr />
-                </Box>
-              )
+              notification = <DependencyNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
+              break
             default:
               return null
           }
+          // Dependency notifications already provide their own remove/cancel controls,
+          // so only add the uniform remove "X" for the other notification types.
+          const showRemove = jobDetails.type !== JOB_TYPE.FETCH_DEPENDENCIES
+          return (
+            <Box key={jobId}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ flexGrow: 1, minWidth: 0 }}>{notification}</Box>
+                {showRemove && (
+                  <IconButton
+                    size="small"
+                    aria-label="Remove notification"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      NotificationStore.removeJob(jobId)
+                    }}
+                    sx={{ mr: 1 }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
+              <hr />
+            </Box>
+          )
         })}
         {Object.keys(jobs)?.length === 0 ? (
           <MenuItem>No notifications</MenuItem>

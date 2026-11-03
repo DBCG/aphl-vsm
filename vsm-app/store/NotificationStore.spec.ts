@@ -11,7 +11,8 @@ jest.mock('../services/frontend/JobsService', () => ({
   __esModule: true,
   default: {
     getAllJobs: jest.fn().mockResolvedValue({}),
-    clearJobs: jest.fn().mockResolvedValue(undefined)
+    clearJobs: jest.fn().mockResolvedValue(undefined),
+    deleteJob: jest.fn().mockResolvedValue(undefined)
   }
 }))
 
@@ -42,6 +43,18 @@ describe('NotificationStore', () => {
       expect(job).toBeDefined()
       expect(job.status).toBe(JOB_STATUS.IN_PROGRESS)
       expect(job.type).toBe('EXPORT')
+    })
+
+    test('stamps the job with a createdAt timestamp for ordering', async () => {
+      const before = Date.now()
+      await NotificationStore.addJob({
+        jobId: 'job-created-at',
+        jobType: 'EXPORT'
+      })
+
+      const job = NotificationStore.getJob('job-created-at')
+      expect(typeof job.createdAt).toBe('number')
+      expect(job.createdAt).toBeGreaterThanOrEqual(before)
     })
   })
 
@@ -103,7 +116,9 @@ describe('NotificationStore', () => {
   })
 
   describe('removeJob', () => {
-    test('removes a job from state', async () => {
+    test('removes a job from state and persists the removal server-side', async () => {
+      const JobHandler = require('../services/frontend/JobsService').default
+
       await NotificationStore.addJob({
         jobId: 'job-remove',
         jobType: 'EXPORT'
@@ -111,8 +126,9 @@ describe('NotificationStore', () => {
 
       expect(NotificationStore.getJob('job-remove')).toBeDefined()
 
-      NotificationStore.removeJob('job-remove')
+      await NotificationStore.removeJob('job-remove')
 
+      expect(JobHandler.deleteJob).toHaveBeenCalledWith('job-remove')
       expect(NotificationStore.getJob('job-remove')).toBeUndefined()
     })
 
@@ -120,10 +136,21 @@ describe('NotificationStore', () => {
       await NotificationStore.addJob({ jobId: 'job-keep', jobType: 'EXPORT' })
       await NotificationStore.addJob({ jobId: 'job-drop', jobType: 'EXPORT' })
 
-      NotificationStore.removeJob('job-drop')
+      await NotificationStore.removeJob('job-drop')
 
       expect(NotificationStore.getJob('job-keep')).toBeDefined()
       expect(NotificationStore.getJob('job-drop')).toBeUndefined()
+    })
+
+    test('still removes the job from state when the server delete fails', async () => {
+      const JobHandler = require('../services/frontend/JobsService').default
+      ;(JobHandler.deleteJob as jest.Mock).mockRejectedValueOnce(new Error('network'))
+
+      await NotificationStore.addJob({ jobId: 'job-remove-err', jobType: 'EXPORT' })
+
+      await NotificationStore.removeJob('job-remove-err')
+
+      expect(NotificationStore.getJob('job-remove-err')).toBeUndefined()
     })
   })
 

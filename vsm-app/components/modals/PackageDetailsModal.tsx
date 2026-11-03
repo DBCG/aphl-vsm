@@ -192,6 +192,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       const metadata: ExportJobMetadata = {
         programId: program.id!,
         version: versionRadioValue,
+        programVersion: program?.version,
         hasCustomPlanDefinition: fileUploadContent != null,
         fileType,
         filename,

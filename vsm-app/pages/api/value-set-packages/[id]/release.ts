@@ -49,7 +49,7 @@ const releaseVSP = async (
       userId,
       jobId: job.id.toString(),
       type: JOB_TYPE.RELEASE,
-      metadata: JSON.stringify({ programId: vspId, programTitle: vsp.title })
+      metadata: JSON.stringify({ programId: vspId, programTitle: vsp.title, version: vsp.version, basePath: '/value-set-packages' })
     })
 
     Logger.getLogger().info(`VSP ${vspId} release job queued with ID: ${job.id}`)
