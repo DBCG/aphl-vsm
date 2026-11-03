@@ -22,7 +22,10 @@
     },
     "exceljs": {
       "uuid": "^11.1.1"
-    }
+    },
+    "glob": "^14.0.3",
+    "minimatch": "^11.0.4",
+    "fast-uri": "^3.1.9"
   },
   "dependencies": {
     "@emotion/react": "11.11.1",
@@ -36,18 +39,15 @@
     "@mui/system": "^5.8.0",
     "@mui/x-date-pickers": "^6.7.0",
     "ajv": "^8.18.0",
-    "brace-expansion": "^5.0.12",
     "bull": "^4.10.3",
     "date-fns": "^2.25.0",
     "dayjs": "^1.11.10",
-    "decode-uri-component": "^0.5.0",
     "exceljs": "^4.4.0",
     "fast-xml-parser": "^5.3.6",
     "fhir-kit-client": "^1.9.0",
     "ioredis": "^5.4.1",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
-    "minimatch": "^10.2.4",
     "next": "^15.5.12",
     "next-auth": "^4.24.13",
     "pino": "^10.1.0",
