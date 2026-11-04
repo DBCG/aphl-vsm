@@ -85,6 +85,7 @@ const Cache = (function () {
       type,
       metadata,
       status: JOB_STATUS.IN_PROGRESS,
+      createdAt: Date.now(), // ordering key for the notification queue (per-queue job ids aren't globally ordered)
     })
     await instance.sadd(`user:${userId}:jobs`, jobId) // Adds job to user's job list
     await instance.expire(cacheKey, JOB_EXPIRATION) // Defaults to expires job in 24 hours

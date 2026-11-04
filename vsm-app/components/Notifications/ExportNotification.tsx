@@ -34,6 +34,9 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
   const fileType = additionalData?.fileType ? additionalData.fileType.toUpperCase() : ''
   const errorMessage = jobDetails?.error
   const version = additionalData?.version
+  // The artifact's semantic version (e.g. a VSP's 2024-05), distinct from the v1/v2 export toggle
+  const programVersion = additionalData?.programVersion
+  const versionSuffix = programVersion ? ` ${programVersion}` : ''
   const hasCustomPlanDefinition = additionalData?.hasCustomPlanDefinition
 
   let display
@@ -46,7 +49,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">
-              Preparing {fileType} {programTitle} for download
+              Preparing {fileType} {programTitle}{versionSuffix} for download
             </Typography>
           </Stack>
         </Box>
@@ -84,7 +87,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           <Link onClick={downloadExport}>
             <Stack>
               <Typography variant="body1">
-                {fileType} {version} {programTitle} is ready for download
+                {fileType} {version} {programTitle}{versionSuffix} is ready for download
               </Typography>
               {hasCustomPlanDefinition && <Typography variant="caption">Custom Plan Definition was used</Typography>}
             </Stack>

@@ -89,7 +89,7 @@ const NotificationStore = {
     })
     state = {
       ...state,
-      [jobId]: { jobId, status: JOB_STATUS.IN_PROGRESS, metadata, type: jobType }
+      [jobId]: { jobId, status: JOB_STATUS.IN_PROGRESS, metadata, type: jobType, createdAt: Date.now() }
     }
     subject.next(state)
   },
@@ -109,10 +109,17 @@ const NotificationStore = {
     subject.next(state)
     uiListener = null
   },
-  removeJob: (jobId: string) => {
+  removeJob: async (jobId: string) => {
+    // Persist the removal server-side so it stays gone after reload (mirrors clearJobs)
+    try {
+      await JobHandler.deleteJob(jobId)
+    } catch (error) {
+      console.error(`[NotificationStore] Failed to delete job ${jobId}:`, error)
+    }
     const { [jobId]: removed, ...rest } = state
     state = rest
     subject.next(state)
+    activeListenerJobIds.delete(jobId)
   },
   cancelJob: async (jobId: string) => {
     try {

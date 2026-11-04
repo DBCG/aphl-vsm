@@ -8,6 +8,7 @@ import { JobData } from '@/types/jobTypes'
 import PopOverErrorMessage from './PopoverErrorMessage'
 import { useRouter } from 'next/router'
 import { DoneOutline } from '@mui/icons-material'
+import { getReleaseRoute } from '@/helpers/notificationHelpers'
 type Props = {
   jobId: string
   jobDetails: JobData
@@ -30,7 +31,8 @@ const StatusActionNotification = ({ jobDetails }: StatusActionNotificationProps)
     console.error(e)
   }
   const programTitle = additionalData?.programTitle || 'program'
-  const programId = additionalData?.programId || ''
+  const version = additionalData?.version
+  const versionSuffix = version ? ` ${version}` : ''
   const errorMessage = jobDetails?.error
 
   let display
@@ -43,7 +45,7 @@ const StatusActionNotification = ({ jobDetails }: StatusActionNotificationProps)
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">
-              Program &quot;{programTitle}&quot; is being released
+              &quot;{programTitle}&quot;{versionSuffix} is being released
             </Typography>
           </Stack>
         </Box>
@@ -64,7 +66,7 @@ const StatusActionNotification = ({ jobDetails }: StatusActionNotificationProps)
           </ListItemIcon>
           <Stack sx={{ maxWidth: '300px' }}>
             <Typography variant="body1" sx={{ fontSize: '14px' }}>
-              Program release failed for &quot;{programTitle}&quot;
+              Release failed for &quot;{programTitle}&quot;{versionSuffix}
             </Typography>
             <PopOverErrorMessage errorMessage={errorMessage || ''} />
           </Stack>
@@ -78,10 +80,10 @@ const StatusActionNotification = ({ jobDetails }: StatusActionNotificationProps)
           <ListItemIcon>
             <DoneOutline fontSize="small" />
           </ListItemIcon>
-          <Link onClick={() => router.push(`/programs/${programId}`)}>
+          <Link sx={{ cursor: 'pointer' }} onClick={() => router.push(getReleaseRoute(additionalData))}>
             <Stack>
               <Typography variant="body1">
-                &quot;{programTitle}&quot; release operation is Complete
+                &quot;{programTitle}&quot;{versionSuffix} release operation is Complete
               </Typography>
             </Stack>
           </Link>

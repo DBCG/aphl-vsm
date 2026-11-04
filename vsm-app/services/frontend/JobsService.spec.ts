@@ -69,6 +69,15 @@ describe('JobsService', () => {
     })
   })
 
+  describe('deleteJob', () => {
+    test('sends DELETE request to /api/jobs/:id', async () => {
+      ;(apiFetch as jest.Mock).mockResolvedValue({})
+
+      await JobsService.deleteJob('job-123')
+      expect(apiFetch).toHaveBeenCalledWith('/api/jobs/job-123', { method: 'DELETE' })
+    })
+  })
+
   describe('getExportJob', () => {
     test('fetches job by ID', async () => {
       const mockJob = { jobId: 'job-123', status: 'COMPLETED' }

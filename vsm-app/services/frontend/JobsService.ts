@@ -6,6 +6,10 @@ class JobsService {
     return apiFetch('/api/jobs', { method: 'DELETE' })
   }
 
+  static async deleteJob(jobId: string) {
+    return apiFetch('/api/jobs/' + jobId, { method: 'DELETE' })
+  }
+
   static async getAllJobs(): Promise<Jobs> {
     const jobs = await apiFetch('/api/jobs').then((r) => r.json() as Promise<Jobs>)
     for (const jobId in jobs) {
