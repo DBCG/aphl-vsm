@@ -10,13 +10,10 @@ export interface JobData {
 
 export interface ExportJobMetadata {
   programId: string
-  version: string
-  hasCustomPlanDefinition: boolean
   filename: string
   fileType: 'csv' | 'json' | 'xml'
   programTitle: string
-  // The artifact's semantic version (e.g. a VSP's 2024-05). Distinct from `version`,
-  // which carries the eRSD v1/v2 export-format toggle.
+  // The artifact's semantic version (e.g. a VSP's 2024-05)
   programVersion?: string
 }
 

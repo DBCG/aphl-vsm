@@ -1,5 +1,4 @@
-import React, { ChangeEvent, useState, useEffect } from 'react'
-import ClearIcon from '@mui/icons-material/Clear'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Dialog,
@@ -13,15 +12,10 @@ import {
   Stack,
   Typography,
   Radio,
-  RadioGroup,
-  Input,
-  InputLabel,
-  Tooltip
+  RadioGroup
 } from '@mui/material'
-import InfoIcon from '@mui/icons-material/Info'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { toast } from 'react-toastify'
-import styled from 'styled-components'
 import type { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
 import { ModalContent } from '@/styles/modal'
 import NotificationStore from '@/store/NotificationStore'
@@ -42,9 +36,6 @@ interface ModalInfo {
 
 interface BodyFormatter {
   isJson: boolean
-  isV2: boolean
-  targetVersion: string | undefined
-  fileUploadContent: { content: fhir4.PlanDefinition } | undefined
 }
 
 interface PackageParams extends BodyFormatter {
@@ -53,13 +44,8 @@ interface PackageParams extends BodyFormatter {
   resourceType?: 'program' | 'vsp'
 }
 
-const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, programId, metadata, resourceType = 'program' }: PackageParams) => {
-  const bodyForPackage = formatBody({
-    isJson,
-    isV2,
-    targetVersion,
-    fileUploadContent
-  })
+const packageProgram = async ({ isJson, programId, metadata, resourceType = 'program' }: PackageParams) => {
+  const bodyForPackage = formatBody({ isJson })
   bodyForPackage.metadata = metadata
 
   // Use different endpoint based on resource type
@@ -73,31 +59,18 @@ const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, 
   })
 }
 
-const formatBody = ({ isJson, isV2, targetVersion, fileUploadContent }: BodyFormatter): ExpectedPackageBody['body'] => {
-  const body: ExpectedPackageBody['body'] = {
-    data: {
-      parameters: {
-        resourceType: 'Parameters'
-      },
-      json: isJson,
-      useV2: isV2
-    }
+const formatBody = ({ isJson }: BodyFormatter): ExpectedPackageBody['body'] => ({
+  data: {
+    parameters: {
+      resourceType: 'Parameters'
+    },
+    json: isJson
   }
-
-  if (!isV2 && fileUploadContent) {
-    body.planDefinition = fileUploadContent.content
-    body.targetVersion = targetVersion
-  }
-  return body
-}
+})
 
 const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError, resourceType = 'program' }: ModalInfo) => {
   const [fileType, setFileType] = useState<'json' | 'xml' | 'csv'>('json')
   const [downloadLoading, setDownloadLoading] = useState(false)
-  const [versionRadioValue, setVersionRadioValue] = useState('v2')
-  const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: fhir4.PlanDefinition }>(undefined)
-  const [targetVersion, setTargetVersion] = useState<string>('')
-  const [inputError, setInputError] = useState<boolean>(false)
   const [unversionedConfirmOpen, setUnversionedConfirmOpen] = useState(false)
 
   const unversionedRefs = resourceType === 'vsp'
@@ -108,10 +81,6 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const handleResetState = () => {
     setFileType('json')
     setDownloadLoading(false)
-    setVersionRadioValue('v2')
-    setFileUploadContent(undefined)
-    setTargetVersion('')
-    setInputError(false)
   }
 
   useEffect(() => {
@@ -122,27 +91,6 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     e.preventDefault()
     toggleModalOpen()
     handleResetState()
-  }
-
-  const readFile = (file: File) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        try {
-          const result = JSON.parse(event?.target?.result as string)
-          if (result.resourceType !== 'PlanDefinition') {
-            toast.error(`${file?.name} is not a PlanDefinition Resource`)
-            reject()
-          }
-          resolve(result)
-        } catch (e) {
-          toast.error('File is not valid JSON')
-          reject()
-        }
-      }
-      reader.onerror = () => reject()
-      reader.readAsText(file)
-    })
   }
 
   const handleExitExportModal = () => {
@@ -193,9 +141,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
       const metadata: ExportJobMetadata = {
         programId: program.id!,
-        version: versionRadioValue,
         programVersion: program?.version,
-        hasCustomPlanDefinition: fileUploadContent != null,
         fileType,
         filename,
         programTitle: program?.title!
@@ -204,9 +150,6 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
       const jobResponse = await packageProgram({
         isJson: fileType === 'json' || fileType === 'csv',
-        isV2: versionRadioValue === 'v2',
-        targetVersion,
-        fileUploadContent,
         programId: program.id!,
         metadata,
         resourceType
@@ -232,18 +175,6 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       toast.error(`Export failed: ${error.message || 'Unknown error'}`)
       handleExitExportModal()
     }
-  }
-
-  const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    if ((e?.target?.files?.length ?? 0) > 1) {
-      toast.error('Cannot upload more than 1 file at a time')
-      setFileUploadContent(undefined)
-      return
-    }
-
-    const file = e?.target?.files?.[0] as File
-    const content = (await readFile(file)) as fhir4.PlanDefinition
-    setFileUploadContent({ fileName: file?.name, content })
   }
 
   return (
@@ -303,17 +234,5 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     </>
   )
 }
-
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  whiteSpace: 'nowrap',
-  width: 1
-})
 
 export { ExportPackageDetailsModal }
