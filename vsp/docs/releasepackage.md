@@ -29,8 +29,12 @@ You can run the FHIR server using the official [HAPI FHIR JPA Server Docker imag
 
 ```bash
 docker pull hapiproject/hapi:latest
-docker run -p 8080:8080 hapiproject/hapi:latest
-````
+docker run -p 8080:8080 -e "hapi.fhir.cr.enabled=true" hapiproject/hapi:latest
+```
+
+```bash
+docker run -p 8080:8080 -e "hapi.fhir.implementationguides.uscore_6.name=hl7.fhir.us.core" -e "hapi.fhir.implementationguides.uscore_6.version=6.1.0" -e "hapi.fhir.implementationguides.uscore_6.installMode=STORE_AND_INSTALL" -e "hapi.fhir.implementationguides.core_r4.name=hl7.fhir.r4.core" -e "hapi.fhir.implementationguides.core_r4.version=4.0.1" -e "hapi.fhir.implementationguides.core_r4.installMode=STORE_AND_INSTALL" -e "hapi.fhir.cr.enabled=true" hapiproject/hapi:latest
+```
 
 This exposes the FHIR server at:
 
@@ -67,6 +71,9 @@ You’ll need:
 
 ---
 
+* TODO: This is not a great story for users, how are they supposed to get a FHIR bundle containing the contents of the IG?
+* TODO: As a workaround for now, see the above use of the implementation guide installer configuration in the HAPI server, this will work for any HL7 published IG
+
 ## 🚀 Step-by-Step: `$release` and `$package` Operations
 
 These operations enable the transformation of an IG’s content into a curated, reusable value set package.
@@ -90,11 +97,26 @@ curl -X POST http://localhost:8080/fhir \
 
 This defines the structure and parameters for release/packaging.
 
+The following assumes running from the directory which has the manifest library, so it is able to reference the file directly:
+
 ```bash
 curl -X POST http://localhost:8080/fhir/Library \
   -H "Content-Type: application/fhir+json" \
   -d @Library-uscore-vsp-6-1-0.json
 ```
+
+If you are running from an alternate location, provide a relative or absolute path to the file. For example, if you are running in the root directory of an IG project with a standard resources folder structure:
+
+```bash
+curl -X POST http://localhost:8080/fhir/Library \
+  -H "Content-Type: application/fhir+json" \
+  -d @input/resources/library/Library-uscore-vsp-6-1-0-draft.json
+```
+```cmd
+curl -X POST http://localhost:8080/fhir/Library -H "Content-Type: application/fhir+json" -d @"C:\Users\Bryn\Documents\Src\APHL\vsp-ig\input\resources\library\Library-uscore-vsp-6-1-0-draft.json
+```
+
+* TODO: Note that because this was done with a POST, the poor user will need to figure what ID was actually assigned in order to invoke the next operations...
 
 <details>
 <summary>📄 Sample Manifest Payload (click to expand)</summary>
@@ -179,6 +201,11 @@ curl --location 'http://localhost:8080/fhir/Library/<id>/$release' \
 --data  '<Paste JSON Body Here>'
 ```
 
+* TODO: Either the latest released JPA server starter doesn't have the $release/$package implementation yet, or the cr-enabled option isn't set here?
+
+```cmd
+curl -X POST http://localhost:8080/fhir/Library/6417/$release -H "Content-Type: application/fhir+json" -d @"C:\Users\Bryn\Documents\Src\APHL\vsp-ig\input\resources\parameters\Parameters-release.json"
+```
 <details>
 <summary>📄 Sample Release Payload (click to expand)</summary>
 
